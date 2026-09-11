@@ -25,17 +25,33 @@
 Una web donde los jugadores se registran, construyen y analizan sus mazos, descubren cartas nuevas,
 reciben recomendaciones y comparten sus listas con la comunidad.
 
+### Enfoque: Commander (EDH)
+
+Commander es el formato más jugado de Magic y en DeckForge es **ciudadano de primera**: el resto de formatos se soportan,
+pero las decisiones de producto se toman pensando en Commander.
+
+- **El comandante manda.** Cada mazo gira alrededor de una carta. Su **identidad de color** (los colores de su coste de maná
+  más los que aparezcan en el texto de sus habilidades) determina qué cartas son legales en ese mazo. Por eso el comandante
+  se elige **antes** que nada y, a partir de ahí, filtra todas las búsquedas y sugerencias del mazo.
+- **Cien cartas y una sola copia de cada una** (salvo tierras básicas), lo que cambia por completo las estadísticas y las
+  probabilidades de robo respecto a los formatos de sesenta cartas.
+- **Gran parte del mazo es casi obligatoria.** Rampa, robo de cartas, remoción y ciertas tierras se repiten en la inmensa
+  mayoría de listas de esos colores. Montar esa base a mano, carta por carta, es el trabajo más repetitivo y aburrido de
+  construir un mazo, y es justo lo que queremos eliminar.
+
 ### Qué queremos mejorar respecto a Moxfield y Archidekt
 
-| Área          | Propuesta de DeckForge                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Edición       | Editor _keyboard-first_: paleta de comandos (`Ctrl+K`), añadir con `4 Lightning Bolt`, deshacer/rehacer y guardado automático. |
-| Búsqueda      | Constructor visual de filtros **sincronizado** con la sintaxis de Scryfall (editas uno y se actualiza el otro).                |
-| Versiones     | Historial del mazo con _diffs_ (qué entró y qué salió) y variantes de un mismo mazo.                                           |
-| Análisis      | Estadísticas en vivo: curva, fuentes de color frente a requisitos, probabilidades de robo (hipergeométrica).                   |
-| Recomendación | Sugerencias **explicadas**, combos detectados, alternativas por presupuesto y estimación del _bracket_ de Commander.           |
-| Rendimiento   | Listas virtualizadas, UI optimista y transiciones suaves que respetan la opción "reducir movimiento".                          |
-| Colección     | Marcar qué cartas tienes y cuáles te faltan para completar un mazo.                                                            |
+| Área                  | Propuesta de DeckForge                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Edición               | Editor _keyboard-first_: paleta de comandos (`Ctrl+K`), añadir con `4 Lightning Bolt`, deshacer/rehacer y guardado automático.                           |
+| Búsqueda              | Constructor visual de filtros **sincronizado** con la sintaxis de Scryfall (editas uno y se actualiza el otro).                                          |
+| Versiones             | Historial del mazo con _diffs_ (qué entró y qué salió) y variantes de un mismo mazo.                                                                     |
+| Análisis              | Estadísticas en vivo: curva, fuentes de color frente a requisitos, probabilidades de robo (hipergeométrica).                                             |
+| Recomendación         | Sugerencias **explicadas**, combos detectados, alternativas por presupuesto y estimación del _bracket_ de Commander.                                     |
+| Rendimiento           | Listas virtualizadas, UI optimista y transiciones suaves que respetan la opción "reducir movimiento".                                                    |
+| Colección             | Marcar qué cartas tienes y cuáles te faltan para completar un mazo.                                                                                      |
+| **Quick adds**        | Sección del editor con las cartas casi obligatorias del comandante elegido: montar la base del mazo en unos pocos clics en lugar de buscarlas una a una. |
+| **Commander primero** | Elegir comandante fija la identidad de color y filtra automáticamente búsquedas, sugerencias y validación de todo el mazo.                               |
 
 ---
 
@@ -155,6 +171,10 @@ Todas las rutas existen ya con su **layout definitivo** y paneles `PlaceholderPa
 - **Columna izquierda:** buscador con autocompletado para añadir cartas, con atajos de teclado.
 - **Columna central:** zonas (comandante, principal, banquillo, quizás), agrupación por tipo, CMC o etiqueta y _drag & drop_.
 - **Columna derecha:** estadísticas en vivo, validación de legalidad y recomendaciones.
+- **Quick adds ("recomendado para este comandante"):** bloque destacado con las cartas casi obligatorias de esa identidad
+  de color, agrupadas por función (rampa, robo, remoción, tierras) y añadibles de una en una o por paquetes completos.
+  Una vez montada esa base, el mismo bloque cambia de papel y pasa a sugerir cartas según las **carencias detectadas**
+  en el mazo: poca rampa para su curva, falta de robo, pocas fuentes de uno de sus colores o ninguna respuesta a encantamientos.
 - Guardado automático optimista, deshacer/rehacer e historial de versiones.
 
 **3 · Búsqueda (`/search`)**
@@ -171,19 +191,20 @@ Todas las rutas existen ya con su **layout definitivo** y paneles `PlaceholderPa
 
 Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryfall-card-repository.ts`
 
-| Endpoint                                       | Uso en DeckForge                                        | Fase |
-| ---------------------------------------------- | ------------------------------------------------------- | ---- |
-| `GET /cards/search?q=`                         | Búsqueda de cartas con sintaxis completa                | 1    |
-| `GET /cards/autocomplete?q=`                   | Autocompletado en buscador y editor                     | 1    |
-| `GET /cards/:id`                               | Detalle de una impresión concreta                       | 1    |
-| `GET /cards/named?exact=\|fuzzy=`              | Resolver nombres escritos a mano                        | 1    |
-| `GET /cards/:id/rulings`                       | Rulings en el detalle de carta                          | 1    |
-| `GET /cards/search?q=oracleid:…&unique=prints` | Todas las impresiones de una carta                      | 1    |
-| `GET /symbology`                               | SVG de símbolos de maná para `ManaCost`                 | 1    |
-| `GET /catalog/*`                               | Listas de tipos, subtipos y _keywords_ para los filtros | 1    |
-| `GET /sets`                                    | Filtro por edición e iconos de set                      | 1    |
-| `POST /cards/collection`                       | Importar listas (hasta 75 identificadores por petición) | 2    |
-| `GET /bulk-data`                               | Sincronización diaria de la base de cartas en la API    | 2    |
+| Endpoint                                       | Uso en DeckForge                                                       | Fase |
+| ---------------------------------------------- | ---------------------------------------------------------------------- | ---- |
+| `GET /cards/search?q=`                         | Búsqueda de cartas con sintaxis completa                               | 1    |
+| `GET /cards/autocomplete?q=`                   | Autocompletado en buscador y editor                                    | 1    |
+| `GET /cards/:id`                               | Detalle de una impresión concreta                                      | 1    |
+| `GET /cards/named?exact=\|fuzzy=`              | Resolver nombres escritos a mano                                       | 1    |
+| `GET /cards/:id/rulings`                       | Rulings en el detalle de carta                                         | 1    |
+| `GET /cards/search?q=oracleid:…&unique=prints` | Todas las impresiones de una carta                                     | 1    |
+| `GET /cards/search?q=id<=wub …`                | Cartas legales según la identidad de color del comandante (quick adds) | 3    |
+| `GET /symbology`                               | SVG de símbolos de maná para `ManaCost`                                | 1    |
+| `GET /catalog/*`                               | Listas de tipos, subtipos y _keywords_ para los filtros                | 1    |
+| `GET /sets`                                    | Filtro por edición e iconos de set                                     | 1    |
+| `POST /cards/collection`                       | Importar listas (hasta 75 identificadores por petición)                | 2    |
+| `GET /bulk-data`                               | Sincronización diaria de la base de cartas en la API                   | 2    |
 
 **Normas de uso que debemos cumplir:**
 
@@ -230,6 +251,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [ ] Hooks `useCardSearch` (infinite query) y `useCardAutocomplete` (con _debounce_)
 - [ ] Barra de búsqueda con autocompletado, historial y ayuda de sintaxis
 - [ ] Filtros visuales ⇄ sintaxis Scryfall (parser bidireccional)
+- [ ] Filtro por identidad de color (`id<=`), base del filtrado por comandante de la Fase 3
 - [ ] Rejilla virtualizada (TanStack Virtual) con scroll infinito y vista rápida
 - [ ] Componentes `CardImage` (carga diferida, giro para doble cara) y `ManaCost` (símbolos SVG)
 - [ ] Página `/cards/[cardId]`: oracle, rulings, impresiones, legalidades y precios
@@ -253,6 +275,9 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [ ] Guardado automático optimista (`useOptimistic` + cola de sincronización), deshacer/rehacer
 - [ ] Estadísticas en vivo: curva de maná, colores, tipos, precio y fuentes de maná
 - [ ] Validación de legalidad: tamaño, copias, identidad de color y lista de prohibidas
+- [ ] Selector de comandante: fija la identidad de color y filtra el resto del editor
+- [ ] **Quick adds v1:** cartas casi obligatorias de esa identidad de color, agrupadas por función
+      (rampa, robo, remoción, tierras), añadibles de una en una o por paquetes completos
 - [ ] Historial de versiones con _diffs_
 
 ### Fase 4 · Pulido de la experiencia
@@ -275,6 +300,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [ ] Detección de combos (Commander Spellbook)
 - [ ] Sugerencias por co-ocurrencia en mazos públicos (mismo comandante o arquetipo)
 - [ ] Sinergias por etiquetas de función (_ramp_, _removal_, _draw_…)
+- [ ] **Quick adds v2:** detección de carencias del mazo (poca rampa, poco robo, curva alta,
+      fuentes de color insuficientes) y sugerencias concretas para corregirlas
 - [ ] Alternativas más baratas para cada carta
 - [ ] Estimación del _bracket_ de Commander
 - [ ] Explicación visible del porqué de cada recomendación
