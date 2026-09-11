@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens de DeckForge (Tailwind CSS v4).
+ * Cada variable --color-* genera utilidades: bg-surface, text-muted, border-border…
+ * Tema oscuro por defecto: el arte de las cartas destaca más sobre fondos oscuros.
+ */
+@theme {
+  --color-background: oklch(0.15 0.012 275);
+  --color-surface: oklch(0.19 0.014 275);
+  --color-surface-raised: oklch(0.23 0.016 275);
+  --color-border: oklch(0.3 0.018 275);
+  --color-foreground: oklch(0.96 0.005 275);
+  --color-muted: oklch(0.7 0.02 275);
+  --color-accent: oklch(0.74 0.14 295);
+  --color-accent-foreground: oklch(0.15 0.012 275);
+  --color-danger: oklch(0.65 0.2 25);
+
+  /* Colores de maná (WUBRG + incoloro) para indicadores de identidad de color. */
+  --color-mana-w: oklch(0.95 0.05 95);
+  --color-mana-u: oklch(0.7 0.12 240);
+  --color-mana-b: oklch(0.5 0.03 300);
+  --color-mana-r: oklch(0.66 0.19 32);
+  --color-mana-g: oklch(0.68 0.14 150);
+  --color-mana-c: oklch(0.78 0.01 275);
+
+  /* Curva "ease-out-quint": arranque rápido y frenado suave. */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/* "inline" porque las variables de fuente las inyecta next/font en tiempo de ejecución. */
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent/30;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+/* Accesibilidad: sin animaciones CSS si el usuario pide reducir movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
