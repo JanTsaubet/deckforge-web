@@ -76,29 +76,34 @@ Cada decisión responde a las necesidades concretas de un constructor de mazos: 
 
 ### Utilidades y calidad
 
-| Herramienta                     | Uso                                                     |
-| ------------------------------- | ------------------------------------------------------- |
-| `lucide-react`                  | Iconos SVG consistentes, con _tree-shaking_             |
-| `clsx` + `tailwind-merge`       | Función `cn()` para combinar clases sin conflictos      |
-| ESLint 9 + `eslint-config-next` | Reglas de React, Hooks, accesibilidad y Core Web Vitals |
-| Prettier                        | Formato automático y uniforme                           |
+| Herramienta                     | Uso                                                       |
+| ------------------------------- | --------------------------------------------------------- |
+| `lucide-react`                  | Iconos SVG consistentes, con _tree-shaking_               |
+| `clsx` + `tailwind-merge`       | Función `cn()` para combinar clases sin conflictos        |
+| ESLint 9 + `eslint-config-next` | Reglas de React, Hooks, accesibilidad y Core Web Vitals   |
+| Prettier                        | Formato automático y uniforme                             |
+| Vitest + Testing Library        | Tests unitarios y de componentes                          |
+| MSW                             | Simula Scryfall en los tests: ni red ni fallos aleatorios |
+| Playwright                      | Pruebas de humo de los recorridos principales             |
+| husky + lint-staged             | Formato y lint automáticos antes de cada commit           |
+| commitlint                      | Mensajes de commit con Conventional Commits               |
+| GitHub Actions                  | CI: formato, lint, tipos, tests y build en cada cambio    |
 
 > ESLint se mantiene en la versión 9 porque varios plugins incluidos en `eslint-config-next`
 > (`eslint-plugin-react`, `eslint-plugin-import`) aún no declaran soporte para ESLint 10.
 
 ### Se añadirán en su fase
 
-| Librería                                  | Fase | Para qué                                              |
-| ----------------------------------------- | ---- | ----------------------------------------------------- |
-| Radix UI (vía shadcn/ui)                  | 1    | Primitivas accesibles: Dialog, Popover, Tabs, Tooltip |
-| TanStack Virtual                          | 1    | Virtualizar rejillas y listas con cientos de cartas   |
-| Vitest + Testing Library, Playwright, MSW | 0–1  | Tests unitarios, E2E y simulación de APIs             |
-| React Hook Form                           | 2    | Formularios de acceso, registro y ajustes (con Zod)   |
-| Cliente de Better Auth                    | 2    | Sesión en el frontend                                 |
-| `cmdk`                                    | 3    | Paleta de comandos del editor                         |
-| dnd-kit                                   | 3    | _Drag & drop_ accesible entre zonas del mazo          |
-| Recharts                                  | 3    | Gráficas de curva de maná y distribución de colores   |
-| next-intl                                 | 4    | Internacionalización (es/en)                          |
+| Librería                 | Fase | Para qué                                              |
+| ------------------------ | ---- | ----------------------------------------------------- |
+| Radix UI (vía shadcn/ui) | 1    | Primitivas accesibles: Dialog, Popover, Tabs, Tooltip |
+| TanStack Virtual         | 1    | Virtualizar rejillas y listas con cientos de cartas   |
+| React Hook Form          | 2    | Formularios de acceso, registro y ajustes (con Zod)   |
+| Cliente de Better Auth   | 2    | Sesión en el frontend                                 |
+| `cmdk`                   | 3    | Paleta de comandos del editor                         |
+| dnd-kit                  | 3    | _Drag & drop_ accesible entre zonas del mazo          |
+| Recharts                 | 3    | Gráficas de curva de maná y distribución de colores   |
+| next-intl                | 4    | Internacionalización (es/en)                          |
 
 ---
 

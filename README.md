@@ -241,21 +241,22 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Estructura por _features_, grupos de rutas y todas las pantallas con layout y paneles provisionales
 - [x] Contratos `CardRepository` / `DeckRepository` y adaptador de Scryfall
 - [x] Design tokens (colores de maná, curvas de animación) y transición de página
-- [ ] CI con GitHub Actions: `lint`, `typecheck`, `build`
-- [ ] Tests: Vitest + Testing Library (unitarios) y Playwright (E2E); MSW para simular APIs
-- [ ] Hooks de git (lint-staged) y Conventional Commits
+- [x] CI con GitHub Actions: formato, lint, tipos, tests y build en cada push y cada pull request
+- [x] Tests: Vitest + Testing Library (unitarios), Playwright (E2E) y MSW para simular las APIs
+- [x] Hooks de git: lint-staged antes de cada commit y commitlint (Conventional Commits)
 
 ### Fase 1 · Búsqueda y detalle de cartas (sin backend)
 
-- [ ] Route Handlers `/api/cards/search` y `/api/cards/autocomplete` como proxy cacheado a Scryfall
-- [ ] Hooks `useCardSearch` (infinite query) y `useCardAutocomplete` (con _debounce_)
-- [ ] Barra de búsqueda con autocompletado, historial y ayuda de sintaxis
+- [x] Route Handlers `/api/cards/search` y `/api/cards/autocomplete` como proxy cacheado a Scryfall
+- [x] Hooks `useCardSearch` (infinite query) y `useCardAutocomplete` (con _debounce_)
+- [x] Barra de búsqueda con autocompletado navegable por teclado
+- [ ] Historial de búsquedas y ayuda de sintaxis en la propia barra
 - [ ] Filtros visuales ⇄ sintaxis Scryfall (parser bidireccional)
 - [ ] Filtro por identidad de color (`id<=`), base del filtrado por comandante de la Fase 3
-- [ ] Rejilla virtualizada (TanStack Virtual) con scroll infinito y vista rápida
-- [ ] Componentes `CardImage` (carga diferida, giro para doble cara) y `ManaCost` (símbolos SVG)
-- [ ] Página `/cards/[cardId]`: oracle, rulings, impresiones, legalidades y precios
-- [ ] Gestión de errores (`error.tsx`), estados vacíos y _skeletons_
+- [ ] Rejilla virtualizada (TanStack Virtual) con scroll infinito, hoy con botón "Cargar más"
+- [x] Componentes `CardImage` y `ManaCost`; pendientes el giro de doble cara y los SVG oficiales
+- [x] Página `/cards/[cardId]`: oracle, legalidades y precios; pendientes rulings e impresiones
+- [x] Gestión de errores (`error.tsx`), estados vacíos y _skeletons_
 
 ### Fase 2 · Backend, cuentas y biblioteca
 
@@ -310,7 +311,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 
 ## 8. Puesta en marcha
 
-Requisitos: **Node.js 22+** (ver `.nvmrc`).
+Requisitos: **Node.js 22.22.1 o superior** (ver `.nvmrc`); es el mínimo que exigen jsdom y lint-staged.
 
 ```bash
 npm install
@@ -334,6 +335,9 @@ La app queda disponible en <http://localhost:3000>.
 | `npm run lint`      | ESLint                                           |
 | `npm run typecheck` | Genera los tipos de rutas y comprueba TypeScript |
 | `npm run format`    | Formatea con Prettier                            |
+| `npm run test`      | Tests unitarios en modo vigilancia (Vitest)      |
+| `npm run test:run`  | Tests unitarios una sola vez (lo que usa CI)     |
+| `npm run test:e2e`  | Tests de extremo a extremo (Playwright)          |
 
 ---
 
