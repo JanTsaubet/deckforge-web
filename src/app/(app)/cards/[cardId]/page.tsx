@@ -1,33 +1,52 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/layout/page-header";
-import { PlaceholderPanel } from "@/components/ui/placeholder-panel";
-
-export const metadata: Metadata = { title: "Carta" };
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import { createScryfallCardRepository } from "@/features/cards/api/scryfall-card-repository";
+import { CardDetail } from "@/features/cards/components/card-detail";
+import type { Card } from "@/features/cards/types/card";
+import { HttpError } from "@/lib/http/http-client";
 
 interface CardPageProps {
   params: Promise<{ cardId: string }>;
 }
 
-/** Detalle de carta: imagen, texto oracle, impresiones, legalidades, precios y mazos que la usan. */
+/**
+ * `cache` evita pedir la carta dos veces: `generateMetadata` y la propia página
+ * comparten el resultado dentro de la misma petición.
+ */
+const loadCard = cache(async (cardId: string): Promise<Card | null> => {
+  try {
+    return await createScryfallCardRepository().getById(cardId);
+  } catch (error) {
+    // Un id inexistente es un 404 de Scryfall, no un fallo de la aplicación.
+    if (error instanceof HttpError && error.status === 404) return null;
+    throw error;
+  }
+});
+
+export async function generateMetadata({ params }: CardPageProps): Promise<Metadata> {
+  const { cardId } = await params;
+  const card = await loadCard(cardId);
+
+  if (!card) return { title: "Carta no encontrada" };
+
+  return {
+    title: card.name,
+    description: card.oracleText ?? card.typeLine,
+    openGraph: {
+      title: card.name,
+      description: card.typeLine,
+      images: card.images ? [{ url: card.images.normal }] : undefined,
+    },
+  };
+}
+
+/** Detalle de carta. Se renderiza en el servidor: no necesita JavaScript en el cliente. */
 export default async function CardPage({ params }: CardPageProps) {
   const { cardId } = await params;
+  const card = await loadCard(cardId);
 
-  return (
-    <div className="flex flex-col gap-8">
-      <PageHeader title="Detalle de carta" description={`Id de Scryfall: ${cardId}`} />
-      <div className="grid gap-4 md:grid-cols-[320px_1fr]">
-        <PlaceholderPanel
-          title="Imagen"
-          phase="Fase 1"
-          description="Con animación de giro para cartas de doble cara."
-          className="aspect-[5/7]"
-        />
-        <div className="flex flex-col gap-4">
-          <PlaceholderPanel title="Texto oracle y legalidades" phase="Fase 1" />
-          <PlaceholderPanel title="Impresiones y precios" phase="Fase 1" />
-          <PlaceholderPanel title="Mazos que la usan" phase="Fase 5" />
-        </div>
-      </div>
-    </div>
-  );
+  if (!card) notFound();
+
+  return <CardDetail card={card} />;
 }
