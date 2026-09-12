@@ -3,7 +3,7 @@
 import { Search, SearchX, X } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,7 @@ import { CardGrid } from "@/features/cards/components/card-grid";
 import { useCardAutocomplete } from "@/features/cards/hooks/use-card-autocomplete";
 import { useCardSearch } from "@/features/cards/hooks/use-card-search";
 import type { Card } from "@/features/cards/types/card";
+import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { cn } from "@/lib/utils/cn";
 import { buildScryfallQuery, parseScryfallQuery, type CardFilters } from "../lib/scryfall-query";
 import { CardFilterPanel } from "./card-filter-panel";
@@ -44,6 +45,11 @@ export function CardSearchPanel({ initialQuery }: CardSearchPanelProps) {
   const visibleSuggestions = suggestions.slice(0, MAX_SUGGESTIONS);
   const cards = search.data?.pages.flatMap((page) => page.items) ?? [];
   const totalCount = search.data?.pages[0]?.totalCount ?? 0;
+  const pageCount = search.data?.pages.length ?? 0;
+
+  // Referencia estable: si cambiara en cada render, el observador se recrearía sin parar.
+  const { fetchNextPage } = search;
+  const loadMore = useCallback(() => void fetchNextPage(), [fetchNextPage]);
 
   function runSearch(nextQuery: string) {
     const trimmed = nextQuery.trim();
@@ -161,8 +167,9 @@ export function CardSearchPanel({ initialQuery }: CardSearchPanelProps) {
           error={search.error}
           hasNextPage={search.hasNextPage}
           isFetchingNextPage={search.isFetchingNextPage}
+          pageCount={pageCount}
           onRetry={() => void search.refetch()}
-          onLoadMore={() => void search.fetchNextPage()}
+          onLoadMore={loadMore}
         />
       </div>
     </div>
@@ -178,6 +185,7 @@ interface SearchResultsProps {
   error: unknown;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  pageCount: number;
   onRetry: () => void;
   onLoadMore: () => void;
 }
@@ -192,6 +200,7 @@ function SearchResults({
   error,
   hasNextPage,
   isFetchingNextPage,
+  pageCount,
   onRetry,
   onLoadMore,
 }: SearchResultsProps) {
@@ -249,12 +258,51 @@ function SearchResults({
       </p>
       <CardGrid cards={cards} />
       {hasNextPage && (
-        <div className="flex justify-center">
-          {/* TODO(Fase 1): sustituir por scroll infinito con IntersectionObserver + virtualización. */}
-          <Button variant="secondary" onClick={onLoadMore} disabled={isFetchingNextPage}>
-            {isFetchingNextPage ? "Cargando…" : "Cargar más cartas"}
-          </Button>
-        </div>
+        <LoadMoreSection
+          pageCount={pageCount}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={onLoadMore}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Páginas que se cargan solas al hacer scroll antes de exigir un clic. */
+const MAX_AUTO_LOADED_PAGES = 5;
+
+interface LoadMoreSectionProps {
+  pageCount: number;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
+}
+
+/**
+ * Pide la página siguiente al acercarse el final de la lista.
+ *
+ * Pasadas varias páginas la carga automática se detiene y hace falta pulsar: así bajar
+ * rápido con la rueda no arrastra miles de cartas ni tantas peticiones a Scryfall.
+ * El botón se mantiene siempre porque es la vía accesible con teclado.
+ */
+function LoadMoreSection({ pageCount, isFetchingNextPage, onLoadMore }: LoadMoreSectionProps) {
+  const canAutoLoad = pageCount < MAX_AUTO_LOADED_PAGES && !isFetchingNextPage;
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>(onLoadMore, { enabled: canAutoLoad });
+
+  return (
+    <div ref={sentinelRef} className="flex flex-col items-center gap-2 py-4">
+      {isFetchingNextPage ? (
+        <p role="status" className="text-sm text-muted">
+          Cargando más cartas…
+        </p>
+      ) : (
+        <Button variant="secondary" onClick={onLoadMore}>
+          Cargar más cartas
+        </Button>
+      )}
+      {!canAutoLoad && !isFetchingNextPage && (
+        <p className="text-xs text-muted">
+          La carga automática se detiene tras {MAX_AUTO_LOADED_PAGES} páginas.
+        </p>
       )}
     </div>
   );
