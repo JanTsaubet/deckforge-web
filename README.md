@@ -251,8 +251,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Hooks `useCardSearch` (infinite query) y `useCardAutocomplete` (con _debounce_)
 - [x] Barra de búsqueda con autocompletado navegable por teclado
 - [ ] Historial de búsquedas y ayuda de sintaxis en la propia barra
-- [ ] Filtros visuales ⇄ sintaxis Scryfall (parser bidireccional)
-- [ ] Filtro por identidad de color (`id<=`), base del filtrado por comandante de la Fase 3
+- [x] Filtros visuales ⇄ sintaxis Scryfall (parser bidireccional)
+- [x] Filtro por identidad de color (`id<=`), base del filtrado por comandante de la Fase 3
 - [ ] Rejilla virtualizada (TanStack Virtual) con scroll infinito, hoy con botón "Cargar más"
 - [x] Componentes `CardImage` y `ManaCost`; pendientes el giro de doble cara y los SVG oficiales
 - [x] Página `/cards/[cardId]`: oracle, legalidades y precios; pendientes rulings e impresiones

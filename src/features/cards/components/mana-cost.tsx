@@ -1,13 +1,5 @@
 import { cn } from "@/lib/utils/cn";
-
-/** Fondo de cada símbolo de color, con los tokens de maná del tema. */
-const SYMBOL_CLASSES: Record<string, string> = {
-  W: "bg-mana-w text-black",
-  U: "bg-mana-u text-black",
-  B: "bg-mana-b text-white",
-  R: "bg-mana-r text-black",
-  G: "bg-mana-g text-black",
-};
+import { MANA_COLOR_CLASSES, MANA_GENERIC_CLASS } from "../constants/mana-colors";
 
 interface ManaCostProps {
   /** Coste en formato de Scryfall, por ejemplo `{2}{G}{G}`. */
@@ -38,7 +30,7 @@ export function ManaCost({ cost, className }: ManaCostProps) {
             aria-hidden
             className={cn(
               "grid size-5 place-items-center rounded-full text-[11px] font-bold",
-              SYMBOL_CLASSES[value] ?? "bg-mana-c text-black",
+              MANA_COLOR_CLASSES[value as keyof typeof MANA_COLOR_CLASSES] ?? MANA_GENERIC_CLASS,
             )}
           >
             {value.replace("/", "")}

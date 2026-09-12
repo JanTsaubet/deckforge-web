@@ -18,21 +18,7 @@ export function SearchView({ activeTab, query }: SearchViewProps) {
         description="Encuentra cartas con la sintaxis de Scryfall o descubre mazos de la comunidad."
       />
       <SearchTabs activeTab={activeTab} />
-      {activeTab === "cards" ? <CardSearchSection query={query} /> : <DeckSearchSection />}
-    </div>
-  );
-}
-
-function CardSearchSection({ query }: { query: string }) {
-  return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-      <PlaceholderPanel
-        title="Filtros"
-        phase="Fase 1"
-        description="Colores, tipo, coste de maná, rareza, set, formato y precio; sincronizados con la consulta de texto."
-        className="h-fit"
-      />
-      <CardSearchPanel initialQuery={query} />
+      {activeTab === "cards" ? <CardSearchPanel initialQuery={query} /> : <DeckSearchSection />}
     </div>
   );
 }
