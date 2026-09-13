@@ -59,8 +59,9 @@ test("el scroll carga la página siguiente sin pulsar nada", async ({ page }) =>
   // Al llegar la última página ya no hay más que cargar y el botón desaparece.
   await expect(cargarMas).toBeHidden();
 
-  await page.keyboard.press("End");
-  await expect(page.getByTitle(`Carta 2-${CARDS_PER_PAGE - 1}`)).toBeVisible();
+  // Scroll real hasta el final: pulsar End depende de dónde esté el foco en ese momento.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect(page.getByTitle(`Carta 2-${CARDS_PER_PAGE - 1}`)).toBeVisible({ timeout: 15_000 });
 });
 
 test("los filtros reescriben la consulta y la URL", async ({ page }) => {
@@ -76,7 +77,8 @@ test("la consulta de la URL llega a los controles", async ({ page }) => {
   await page.goto("/search?tab=cards&q=id%3C%3Dwub%20t%3Ainstant%20mv%3C%3D3");
 
   await expect(page.getByLabel("Tipo de carta")).toHaveValue("instant");
-  await expect(page.getByLabel("Valor de maná")).toHaveValue("3");
+  // `exact`: sin él, "Valor de maná" también encaja con "Comparación del valor de maná".
+  await expect(page.getByLabel("Valor de maná", { exact: true })).toHaveValue("3");
   await expect(
     page.getByRole("group", { name: "Identidad de color" }).getByRole("button", { name: "Azul" }),
   ).toHaveAttribute("aria-pressed", "true");
