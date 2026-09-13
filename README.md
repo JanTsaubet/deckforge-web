@@ -254,7 +254,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Filtros visuales ⇄ sintaxis Scryfall (parser bidireccional)
 - [x] Filtro por identidad de color (`id<=`), base del filtrado por comandante de la Fase 3
 - [x] Scroll infinito con IntersectionObserver, con tope de carga automática y botón de respaldo
-- [ ] Rejilla virtualizada (TanStack Virtual): con varias páginas hay cientos de nodos en el DOM
+- [x] Rejilla virtualizada (TanStack Virtual), con repliegue a rejilla completa si no hay medidas
 - [x] Componentes `CardImage` y `ManaCost`; pendientes el giro de doble cara y los SVG oficiales
 - [x] Página `/cards/[cardId]`: oracle, legalidades y precios; pendientes rulings e impresiones
 - [x] Gestión de errores (`error.tsx`), estados vacíos y _skeletons_

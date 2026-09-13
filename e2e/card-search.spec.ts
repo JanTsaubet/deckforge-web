@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 /** Cartas de prueba sin imagen: la rejilla las pinta con su nombre y no sale a la red. */
-function makeCards(pageNumber: number, count = 12) {
+function makeCards(pageNumber: number, count: number) {
   return Array.from({ length: count }, (_, index) => ({
     id: `pagina${pageNumber}-carta${index}`,
     oracleId: `oracle${pageNumber}-${index}`,
@@ -18,6 +18,7 @@ function makeCards(pageNumber: number, count = 12) {
   }));
 }
 
+const CARDS_PER_PAGE = 60;
 const TOTAL_PAGES = 2;
 
 test.beforeEach(async ({ page }) => {
@@ -28,8 +29,8 @@ test.beforeEach(async ({ page }) => {
 
     return route.fulfill({
       json: {
-        items: makeCards(pageNumber),
-        totalCount: 24,
+        items: makeCards(pageNumber, CARDS_PER_PAGE),
+        totalCount: CARDS_PER_PAGE * TOTAL_PAGES,
         hasMore: pageNumber < TOTAL_PAGES,
         page: pageNumber,
       },
@@ -37,16 +38,29 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("la rejilla solo monta las cartas visibles", async ({ page }) => {
+  await page.goto("/search?tab=cards&q=t%3Acreature");
+  await expect(page.getByTitle("Carta 1-0")).toBeVisible();
+
+  const montadas = await page.locator('a[href^="/cards/"]').count();
+
+  // De 60 cartas solo deben existir en el DOM las de las filas visibles y su margen.
+  expect(montadas).toBeGreaterThan(0);
+  expect(montadas).toBeLessThan(CARDS_PER_PAGE);
+});
+
 test("el scroll carga la página siguiente sin pulsar nada", async ({ page }) => {
   await page.goto("/search?tab=cards&q=t%3Acreature");
+  await expect(page.getByTitle("Carta 1-0")).toBeVisible();
 
-  const cards = page.locator('a[href^="/cards/"]');
-  await expect(cards).toHaveCount(12);
+  const cargarMas = page.getByRole("button", { name: "Cargar más cartas" });
+  await cargarMas.scrollIntoViewIfNeeded();
 
-  // Acercar el final de la lista a la pantalla es lo que activa la carga automática.
-  await page.getByRole("button", { name: "Cargar más cartas" }).scrollIntoViewIfNeeded();
+  // Al llegar la última página ya no hay más que cargar y el botón desaparece.
+  await expect(cargarMas).toBeHidden();
 
-  await expect(cards).toHaveCount(24);
+  await page.keyboard.press("End");
+  await expect(page.getByTitle(`Carta 2-${CARDS_PER_PAGE - 1}`)).toBeVisible();
 });
 
 test("los filtros reescriben la consulta y la URL", async ({ page }) => {
