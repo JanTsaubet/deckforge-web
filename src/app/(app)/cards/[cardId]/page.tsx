@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { cache, Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { createScryfallCardRepository } from "@/features/cards/api/scryfall-card-repository";
 import { CardDetail } from "@/features/cards/components/card-detail";
+import { CardPrintings } from "@/features/cards/components/card-printings";
+import { CardRulings } from "@/features/cards/components/card-rulings";
 import type { Card } from "@/features/cards/types/card";
 import { HttpError } from "@/lib/http/http-client";
 
@@ -24,6 +27,14 @@ const loadCard = cache(async (cardId: string): Promise<Card | null> => {
   }
 });
 
+/** Convierte un fallo en `null`: una sección secundaria no debe tumbar la ficha entera. */
+function orNull<T>(promise: Promise<T>, what: string): Promise<T | null> {
+  return promise.catch((error: unknown) => {
+    console.error(`No se han podido cargar ${what}`, error);
+    return null;
+  });
+}
+
 export async function generateMetadata({ params }: CardPageProps): Promise<Metadata> {
   const { cardId } = await params;
   const card = await loadCard(cardId);
@@ -32,7 +43,7 @@ export async function generateMetadata({ params }: CardPageProps): Promise<Metad
 
   return {
     title: card.name,
-    description: card.oracleText ?? card.typeLine,
+    description: card.oracleText ?? card.faces[0]?.oracleText ?? card.typeLine,
     openGraph: {
       title: card.name,
       description: card.typeLine,
@@ -41,12 +52,31 @@ export async function generateMetadata({ params }: CardPageProps): Promise<Metad
   };
 }
 
-/** Detalle de carta. Se renderiza en el servidor: no necesita JavaScript en el cliente. */
+/** Detalle de carta, renderizado en el servidor. Rulings e impresiones llegan en streaming. */
 export default async function CardPage({ params }: CardPageProps) {
   const { cardId } = await params;
   const card = await loadCard(cardId);
 
   if (!card) notFound();
 
-  return <CardDetail card={card} />;
+  const repository = createScryfallCardRepository();
+  // Sin await: la ficha se envía ya y estas secciones llegan cuando estén listas.
+  const rulings = orNull(repository.getRulings(card.id), "las aclaraciones");
+  const printings = orNull(repository.getPrintings(card.oracleId), "las impresiones");
+
+  return (
+    <CardDetail
+      card={card}
+      rulings={
+        <Suspense fallback={<Skeleton className="h-24" />}>
+          <CardRulings rulingsPromise={rulings} />
+        </Suspense>
+      }
+      printings={
+        <Suspense fallback={<Skeleton className="h-40" />}>
+          <CardPrintings printingsPromise={printings} currentId={card.id} />
+        </Suspense>
+      }
+    />
+  );
 }

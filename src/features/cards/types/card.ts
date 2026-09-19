@@ -9,6 +9,16 @@ export interface CardImages {
   artCrop: string;
 }
 
+/** Una cara de una carta con varias: transformables, modales de doble cara, partidas… */
+export interface CardFace {
+  name: string;
+  manaCost?: string;
+  typeLine?: string;
+  oracleText?: string;
+  /** Solo las cartas con dos caras físicas traen una imagen por cara. */
+  images?: CardImages;
+}
+
 /**
  * Carta en el modelo de dominio de DeckForge.
  * Desacoplada a propósito del formato de Scryfall: si cambiamos de proveedor
@@ -20,19 +30,25 @@ export interface Card {
   /** Id de la carta "abstracta", común a todas sus impresiones. */
   oracleId: string;
   name: string;
+  /** En cartas de varias caras, el coste de la cara frontal. */
   manaCost?: string;
   manaValue: number;
   typeLine: string;
+  /** Texto de reglas. En las cartas de varias caras vive en cada `faces[i]`. */
   oracleText?: string;
   colors: ManaColor[];
   colorIdentity: ManaColor[];
   rarity: Rarity;
   set: { code: string; name: string };
   collectorNumber: string;
-  // TODO(Fase 1): modelar cartas de varias caras (card_faces) de forma completa.
+  /** Imagen de la cara frontal, o de la única que tenga. */
   images?: CardImages;
+  /** Caras de la carta; vacío en las cartas de una sola cara. */
+  faces: CardFace[];
   prices: { usd?: string; eur?: string };
   legalities: Record<string, Legality>;
+  /** Fecha de salida de esta impresión (AAAA-MM-DD). */
+  releasedAt?: string;
 }
 
 export type CardSortOrder = "name" | "cmc" | "released" | "rarity" | "usd" | "edhrec";
@@ -42,4 +58,12 @@ export interface CardSearchParams {
   query: string;
   page?: number;
   order?: CardSortOrder;
+}
+
+/** Aclaración sobre cómo funciona la carta, de Wizards o de Scryfall. */
+export interface CardRuling {
+  source: "wotc" | "scryfall";
+  /** Fecha de publicación (AAAA-MM-DD). */
+  publishedAt: string;
+  comment: string;
 }

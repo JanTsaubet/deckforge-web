@@ -9,9 +9,6 @@ export const MANA_COLOR_CLASSES: Record<ManaColor, string> = {
   G: "bg-mana-g text-black",
 };
 
-/** Clase de los símbolos que no son de color (genérico, incoloro, X…). */
-export const MANA_GENERIC_CLASS = "bg-mana-c text-black";
-
 export const MANA_COLOR_LABELS: Record<ManaColor, string> = {
   W: "Blanco",
   U: "Azul",

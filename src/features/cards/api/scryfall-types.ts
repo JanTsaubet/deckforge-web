@@ -39,6 +39,7 @@ export interface ScryfallCard {
   id: string;
   oracle_id?: string;
   name: string;
+  layout?: string;
   mana_cost?: string;
   cmc: number;
   type_line: string;
@@ -49,8 +50,17 @@ export interface ScryfallCard {
   set: string;
   set_name: string;
   collector_number: string;
+  released_at: string;
   image_uris?: ScryfallImageUris;
   card_faces?: ScryfallCardFace[];
   prices: Record<"usd" | "usd_foil" | "eur" | "tix", string | null>;
   legalities: Record<string, string>;
+}
+
+export interface ScryfallRuling {
+  object: "ruling";
+  oracle_id: string;
+  source: "wotc" | "scryfall";
+  published_at: string;
+  comment: string;
 }

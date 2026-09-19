@@ -2,8 +2,24 @@ import { getServerEnv } from "@/config/env";
 import { createHttpClient, HttpError, type HttpClient } from "@/lib/http/http-client";
 import type { Paginated } from "@/types/pagination";
 import type { CardRepository } from "../services/card-repository";
-import type { Card, CardSearchParams, Legality, ManaColor, Rarity } from "../types/card";
-import type { ScryfallCard, ScryfallCatalog, ScryfallList } from "./scryfall-types";
+import type {
+  Card,
+  CardFace,
+  CardImages,
+  CardRuling,
+  CardSearchParams,
+  Legality,
+  ManaColor,
+  Rarity,
+} from "../types/card";
+import type {
+  ScryfallCard,
+  ScryfallCardFace,
+  ScryfallCatalog,
+  ScryfallImageUris,
+  ScryfallList,
+  ScryfallRuling,
+} from "./scryfall-types";
 
 /** Los datos de cartas cambian como mucho a diario: se cachean 24 h en el servidor. */
 const CACHE_ONE_DAY = { next: { revalidate: 60 * 60 * 24 } } as const;
@@ -22,24 +38,14 @@ export class ScryfallCardRepository implements CardRepository {
   constructor(private readonly http: HttpClient) {}
 
   async search({ query, page = 1, order = "name" }: CardSearchParams): Promise<Paginated<Card>> {
-    try {
-      const list = await this.http.get<ScryfallList<ScryfallCard>>("/cards/search", {
-        query: { q: query, page, order },
-        ...CACHE_ONE_DAY,
-      });
-      return {
-        items: list.data.map(toDomainCard),
-        totalCount: list.total_cards ?? list.data.length,
-        hasMore: list.has_more,
-        page,
-      };
-    } catch (error) {
-      // Scryfall responde 404 cuando una búsqueda válida no tiene resultados.
-      if (error instanceof HttpError && error.status === 404) {
-        return { items: [], totalCount: 0, hasMore: false, page };
-      }
-      throw error;
-    }
+    const list = await this.searchOrEmpty({ q: query, page, order });
+
+    return {
+      items: list.data.map(toDomainCard),
+      totalCount: list.total_cards ?? list.data.length,
+      hasMore: list.has_more,
+      page,
+    };
   }
 
   async autocomplete(partialName: string): Promise<string[]> {
@@ -65,6 +71,50 @@ export class ScryfallCardRepository implements CardRepository {
     });
     return toDomainCard(card);
   }
+
+  async getRulings(cardId: string): Promise<CardRuling[]> {
+    const list = await this.http.get<ScryfallList<ScryfallRuling>>(
+      `/cards/${encodeURIComponent(cardId)}/rulings`,
+      CACHE_ONE_DAY,
+    );
+
+    return list.data.map((ruling) => ({
+      source: ruling.source,
+      publishedAt: ruling.published_at,
+      comment: ruling.comment,
+    }));
+  }
+
+  /**
+   * Solo se pide la primera página (hasta 175 impresiones). Las cartas con más, como las
+   * tierras básicas, se cortan ahí: para esta vista basta con las más recientes.
+   */
+  async getPrintings(oracleId: string): Promise<Card[]> {
+    const list = await this.searchOrEmpty({
+      q: `oracleid:${oracleId}`,
+      unique: "prints",
+      order: "released",
+      dir: "desc",
+    });
+    return list.data.map(toDomainCard);
+  }
+
+  /** Scryfall responde 404 cuando una búsqueda válida no tiene resultados: es una lista vacía. */
+  private async searchOrEmpty(
+    query: Record<string, string | number>,
+  ): Promise<ScryfallList<ScryfallCard>> {
+    try {
+      return await this.http.get<ScryfallList<ScryfallCard>>("/cards/search", {
+        query,
+        ...CACHE_ONE_DAY,
+      });
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 404) {
+        return { object: "list", data: [], has_more: false, total_cards: 0 };
+      }
+      throw error;
+    }
+  }
 }
 
 /** Factoría: compone el adaptador con la configuración del entorno. */
@@ -77,15 +127,35 @@ export function createScryfallCardRepository(): CardRepository {
   return new ScryfallCardRepository(http);
 }
 
-/** Traduce una carta de Scryfall al modelo de dominio. */
+function toDomainImages(uris: ScryfallImageUris | undefined): CardImages | undefined {
+  return (
+    uris && { small: uris.small, normal: uris.normal, large: uris.large, artCrop: uris.art_crop }
+  );
+}
+
+function toDomainFace(face: ScryfallCardFace): CardFace {
+  return {
+    name: face.name,
+    // La cara trasera de una transformable trae "" como coste: no tiene coste.
+    manaCost: face.mana_cost || undefined,
+    typeLine: face.type_line,
+    oracleText: face.oracle_text,
+    images: toDomainImages(face.image_uris),
+  };
+}
+
+/**
+ * Traduce una carta de Scryfall al modelo de dominio.
+ * En las cartas de varias caras, coste, texto e imágenes vienen por cara y no arriba.
+ */
 function toDomainCard(card: ScryfallCard): Card {
-  const imageUris = card.image_uris ?? card.card_faces?.[0]?.image_uris;
+  const faces = card.card_faces?.map(toDomainFace) ?? [];
 
   return {
     id: card.id,
     oracleId: card.oracle_id ?? card.id,
     name: card.name,
-    manaCost: card.mana_cost,
+    manaCost: card.mana_cost || faces[0]?.manaCost,
     manaValue: card.cmc,
     typeLine: card.type_line,
     oracleText: card.oracle_text,
@@ -94,13 +164,10 @@ function toDomainCard(card: ScryfallCard): Card {
     rarity: card.rarity as Rarity,
     set: { code: card.set, name: card.set_name },
     collectorNumber: card.collector_number,
-    images: imageUris && {
-      small: imageUris.small,
-      normal: imageUris.normal,
-      large: imageUris.large,
-      artCrop: imageUris.art_crop,
-    },
+    images: toDomainImages(card.image_uris) ?? faces[0]?.images,
+    faces,
     prices: { usd: card.prices.usd ?? undefined, eur: card.prices.eur ?? undefined },
     legalities: card.legalities as Record<string, Legality>,
+    releasedAt: card.released_at,
   };
 }
