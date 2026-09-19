@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 0, esqueleto del proyecto. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 1 completada: búsqueda y detalle de cartas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -245,18 +245,18 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Tests: Vitest + Testing Library (unitarios), Playwright (E2E) y MSW para simular las APIs
 - [x] Hooks de git: lint-staged antes de cada commit y commitlint (Conventional Commits)
 
-### Fase 1 · Búsqueda y detalle de cartas (sin backend)
+### Fase 1 · Búsqueda y detalle de cartas (sin backend) ✅
 
 - [x] Route Handlers `/api/cards/search` y `/api/cards/autocomplete` como proxy cacheado a Scryfall
 - [x] Hooks `useCardSearch` (infinite query) y `useCardAutocomplete` (con _debounce_)
 - [x] Barra de búsqueda con autocompletado navegable por teclado
-- [ ] Historial de búsquedas y ayuda de sintaxis en la propia barra
+- [x] Historial de búsquedas (en el navegador) y ayuda de sintaxis con ejemplos que se pueden probar
 - [x] Filtros visuales ⇄ sintaxis Scryfall (parser bidireccional)
 - [x] Filtro por identidad de color (`id<=`), base del filtrado por comandante de la Fase 3
 - [x] Scroll infinito con IntersectionObserver, con tope de carga automática y botón de respaldo
 - [x] Rejilla virtualizada (TanStack Virtual), con repliegue a rejilla completa si no hay medidas
-- [x] Componentes `CardImage` y `ManaCost`; pendientes el giro de doble cara y los SVG oficiales
-- [x] Página `/cards/[cardId]`: oracle, legalidades y precios; pendientes rulings e impresiones
+- [x] `CardImage` con giro 3D para las cartas de doble cara; símbolos oficiales en SVG en costes y texto de reglas
+- [x] Página `/cards/[cardId]`: caras, texto de reglas, legalidad, precios, rulings e impresiones en streaming
 - [x] Gestión de errores (`error.tsx`), estados vacíos y _skeletons_
 
 ### Fase 2 · Backend, cuentas y biblioteca

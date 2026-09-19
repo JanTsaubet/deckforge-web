@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SearchX, X } from "lucide-react";
+import { History, Search, SearchX, X } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
@@ -14,8 +14,10 @@ import { useCardSearch } from "@/features/cards/hooks/use-card-search";
 import type { Card } from "@/features/cards/types/card";
 import { useInfiniteScroll } from "@/lib/hooks/use-infinite-scroll";
 import { cn } from "@/lib/utils/cn";
+import { useSearchHistory } from "../hooks/use-search-history";
 import { buildScryfallQuery, parseScryfallQuery, type CardFilters } from "../lib/scryfall-query";
 import { CardFilterPanel } from "./card-filter-panel";
+import { SyntaxHelp } from "./syntax-help";
 
 /** Máximo de sugerencias visibles bajo la barra de búsqueda. */
 const MAX_SUGGESTIONS = 8;
@@ -25,8 +27,14 @@ interface CardSearchPanelProps {
   initialQuery: string;
 }
 
+interface RunSearchOptions {
+  /** `false` para los cambios de filtro: cada clic no debe llenar el historial. */
+  remember?: boolean;
+}
+
 /**
- * Búsqueda de cartas: filtros visuales, barra de texto con autocompletado y resultados.
+ * Búsqueda de cartas: filtros visuales, barra de texto con autocompletado, historial y
+ * ayuda de sintaxis, y resultados.
  *
  * La consulta confirmada es la única fuente de verdad y vive en la URL (`?q=`). Los filtros
  * se derivan de ella, así que texto y controles no pueden contradecirse.
@@ -35,28 +43,35 @@ export function CardSearchPanel({ initialQuery }: CardSearchPanelProps) {
   const router = useRouter();
   const [inputValue, setInputValue] = useState(initialQuery);
   const [query, setQuery] = useState(initialQuery);
-  const [areSuggestionsOpen, setAreSuggestionsOpen] = useState(false);
-  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState(-1);
 
+  const searchHistory = useSearchHistory();
   const { data: suggestions = [] } = useCardAutocomplete(inputValue);
   const search = useCardSearch({ query });
 
   const filters = useMemo(() => parseScryfallQuery(query), [query]);
-  const visibleSuggestions = suggestions.slice(0, MAX_SUGGESTIONS);
   const cards = search.data?.pages.flatMap((page) => page.items) ?? [];
   const totalCount = search.data?.pages[0]?.totalCount ?? 0;
   const pageCount = search.data?.pages.length ?? 0;
+
+  // Con la caja vacía se ofrecen las búsquedas recientes; al escribir, el autocompletado.
+  const isShowingHistory = inputValue.trim() === "" && searchHistory.entries.length > 0;
+  const dropdownItems: readonly string[] = isShowingHistory
+    ? searchHistory.entries
+    : suggestions.slice(0, MAX_SUGGESTIONS);
 
   // Referencia estable: si cambiara en cada render, el observador se recrearía sin parar.
   const { fetchNextPage } = search;
   const loadMore = useCallback(() => void fetchNextPage(), [fetchNextPage]);
 
-  function runSearch(nextQuery: string) {
+  function runSearch(nextQuery: string, { remember = true }: RunSearchOptions = {}) {
     const trimmed = nextQuery.trim();
     setQuery(trimmed);
     setInputValue(trimmed);
-    setAreSuggestionsOpen(false);
-    setActiveSuggestion(-1);
+    setIsDropdownOpen(false);
+    setActiveItem(-1);
+    if (remember) searchHistory.add(trimmed);
 
     const params = new URLSearchParams({ tab: "cards" });
     if (trimmed) params.set("q", trimmed);
@@ -65,31 +80,29 @@ export function CardSearchPanel({ initialQuery }: CardSearchPanelProps) {
 
   /** Tocar un filtro reescribe la consulta y busca al instante. */
   function handleFiltersChange(nextFilters: CardFilters) {
-    runSearch(buildScryfallQuery(nextFilters));
+    runSearch(buildScryfallQuery(nextFilters), { remember: false });
   }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    // Con una sugerencia resaltada por teclado, gana esa sobre el texto escrito.
-    runSearch(visibleSuggestions[activeSuggestion] ?? inputValue);
+    // Con un elemento resaltado por teclado, gana ese sobre el texto escrito.
+    runSearch(dropdownItems[activeItem] ?? inputValue);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
-      setAreSuggestionsOpen(false);
-      setActiveSuggestion(-1);
+      setIsDropdownOpen(false);
+      setActiveItem(-1);
       return;
     }
-    if (!areSuggestionsOpen || visibleSuggestions.length === 0) return;
+    if (!isDropdownOpen || dropdownItems.length === 0) return;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveSuggestion((current) => (current + 1) % visibleSuggestions.length);
+      setActiveItem((current) => (current + 1) % dropdownItems.length);
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveSuggestion((current) =>
-        current <= 0 ? visibleSuggestions.length - 1 : current - 1,
-      );
+      setActiveItem((current) => (current <= 0 ? dropdownItems.length - 1 : current - 1));
     }
   }
 
@@ -109,13 +122,13 @@ export function CardSearchPanel({ initialQuery }: CardSearchPanelProps) {
               value={inputValue}
               onChange={(event) => {
                 setInputValue(event.target.value);
-                setAreSuggestionsOpen(true);
-                setActiveSuggestion(-1);
+                setIsDropdownOpen(true);
+                setActiveItem(-1);
               }}
               onKeyDown={handleKeyDown}
-              onFocus={() => setAreSuggestionsOpen(true)}
-              // El retardo permite que el clic sobre una sugerencia llegue antes de cerrarla.
-              onBlur={() => window.setTimeout(() => setAreSuggestionsOpen(false), 120)}
+              onFocus={() => setIsDropdownOpen(true)}
+              // El retardo permite que el clic sobre un elemento llegue antes de cerrar la lista.
+              onBlur={() => window.setTimeout(() => setIsDropdownOpen(false), 120)}
               placeholder="Busca cartas: t:creature c:g mv<=3"
               aria-label="Buscar cartas"
               autoComplete="off"
@@ -132,30 +145,49 @@ export function CardSearchPanel({ initialQuery }: CardSearchPanelProps) {
               </button>
             )}
 
-            {areSuggestionsOpen && visibleSuggestions.length > 0 && (
-              <ul className="absolute top-full left-0 z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-surface-raised shadow-lg">
-                {visibleSuggestions.map((name, index) => (
-                  <li key={name}>
+            {isDropdownOpen && dropdownItems.length > 0 && (
+              <div className="absolute top-full left-0 z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-surface-raised shadow-lg">
+                {isShowingHistory && (
+                  <div className="flex items-center justify-between px-3 pt-2 pb-1">
+                    <p className="text-xs font-medium text-muted">Búsquedas recientes</p>
                     <button
                       type="button"
-                      // onMouseDown evita que el blur del input cancele el clic.
                       onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => runSearch(name)}
-                      className={cn(
-                        "block w-full px-3 py-2 text-left text-sm transition-colors duration-150",
-                        index === activeSuggestion
-                          ? "bg-accent/20 text-foreground"
-                          : "text-muted hover:bg-accent/10 hover:text-foreground",
-                      )}
+                      onClick={searchHistory.clear}
+                      className="text-xs text-muted transition-colors duration-200 hover:text-foreground"
                     >
-                      {name}
+                      Borrar
                     </button>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                )}
+                <ul>
+                  {dropdownItems.map((item, index) => (
+                    <li key={item}>
+                      <button
+                        type="button"
+                        // onMouseDown evita que el blur del input cancele el clic.
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => runSearch(item)}
+                        className={cn(
+                          "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors duration-150",
+                          index === activeItem
+                            ? "bg-accent/20 text-foreground"
+                            : "text-muted hover:bg-accent/10 hover:text-foreground",
+                        )}
+                      >
+                        {isShowingHistory && <History className="size-3.5 shrink-0" aria-hidden />}
+                        <span className="truncate">{item}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
-          <Button type="submit">Buscar</Button>
+          <SyntaxHelp onPick={(example) => runSearch(`${inputValue} ${example}`)} />
+          <Button type="submit" className="h-11">
+            Buscar
+          </Button>
         </form>
 
         <SearchResults
@@ -209,7 +241,7 @@ function SearchResults({
       <EmptyState
         icon={Search}
         title="Busca entre todas las cartas de Magic"
-        description="Usa los filtros de la izquierda o escribe con la sintaxis de Scryfall: t:creature c:g mv<=3"
+        description="Usa los filtros de la izquierda, escribe con la sintaxis de Scryfall (t:creature c:g mv<=3) o abre la ayuda con el botón ?."
       />
     );
   }
