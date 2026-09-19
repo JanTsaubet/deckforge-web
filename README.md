@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 1 completada: búsqueda y detalle de cartas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 en curso: API, cuentas y biblioteca de mazos conectadas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -72,7 +72,7 @@ flowchart LR
 | Repositorio       | Estado                | Responsabilidad                                                                                                     |
 | ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **deckforge-web** | ✅ Este repositorio   | Interfaz, SSR/SEO de mazos y cartas públicas, BFF ligero (Route Handlers que hacen de proxy cacheado a Scryfall).   |
-| **deckforge-api** | ⏳ Fase 2             | Autenticación, usuarios, mazos, colección, búsqueda de mazos, recomendaciones y worker de sincronización de cartas. |
+| **deckforge-api** | 🚧 En curso           | Autenticación, usuarios, mazos, colección, búsqueda de mazos, recomendaciones y worker de sincronización de cartas. |
 | deckforge-recs    | 💭 A evaluar (Fase 6) | Solo si el motor de recomendaciones necesita ML en Python; si no, vive como módulo de `deckforge-api`.              |
 
 **¿Por qué separar web y API?** El worker que sincroniza los _bulk data_ de Scryfall (cientos de MB al día) y el cálculo
@@ -259,14 +259,18 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Página `/cards/[cardId]`: caras, texto de reglas, legalidad, precios, rulings e impresiones en streaming
 - [x] Gestión de errores (`error.tsx`), estados vacíos y _skeletons_
 
-### Fase 2 · Backend, cuentas y biblioteca
+### Fase 2 · Backend, cuentas y biblioteca 🚧
 
-- [ ] Crear `deckforge-api` (NestJS + PostgreSQL + Drizzle + Better Auth) y worker de _bulk data_
-- [ ] Generar tipos del cliente desde OpenAPI
-- [ ] Registro y acceso (email + OAuth), sesión y protección de rutas con `proxy.ts`
-- [ ] `HttpDeckRepository` que implemente `DeckRepository`
-- [ ] Biblioteca: crear, duplicar, borrar, carpetas y etiquetas, filtros, vista rejilla/lista
+- [x] Crear `deckforge-api`: NestJS 12 + PostgreSQL (Docker) + Drizzle + Better Auth, con tests e2e sobre PGlite
+- [ ] Worker de sincronización de los _bulk data_ de Scryfall
+- [x] Generar tipos del cliente desde OpenAPI (`npm run api:types`)
+- [x] Registro y acceso con email y contraseña, sesión y protección de rutas con `proxy.ts`
+- [ ] Acceso con OAuth (Google, Discord): hay que crear antes las credenciales en sus consolas
+- [x] `HttpDeckRepository` que implemente `DeckRepository`
+- [x] Biblioteca conectada a la API: crear y borrar mazos
+- [ ] Biblioteca: duplicar, carpetas y etiquetas, filtros, vista rejilla/lista
 - [ ] Importación de listas en texto (MTGA/MTGO) resolviendo cartas con `/cards/collection`
+- [ ] Probar el recorrido completo contra un Postgres real (pendiente de instalar Docker)
 
 ### Fase 3 · Editor de mazos
 
@@ -314,6 +318,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 
 Requisitos: **Node.js 22.22.1 o superior** (ver `.nvmrc`); es el mínimo que exigen jsdom y lint-staged.
 
+Desde la Fase 2 la web necesita **la API** (repositorio `deckforge-api`) para las cuentas y los mazos; la búsqueda y el detalle de cartas funcionan sin ella. Levántala primero siguiendo su README: queda en <http://localhost:4000> y la web le reenvía `/api/auth/*` y `/api/v1/*`.
+
 ```bash
 npm install
 ```
@@ -328,17 +334,18 @@ npm run dev
 
 La app queda disponible en <http://localhost:3000>.
 
-| Script              | Descripción                                      |
-| ------------------- | ------------------------------------------------ |
-| `npm run dev`       | Servidor de desarrollo (Turbopack)               |
-| `npm run build`     | Build de producción                              |
-| `npm run start`     | Sirve el build de producción                     |
-| `npm run lint`      | ESLint                                           |
-| `npm run typecheck` | Genera los tipos de rutas y comprueba TypeScript |
-| `npm run format`    | Formatea con Prettier                            |
-| `npm run test`      | Tests unitarios en modo vigilancia (Vitest)      |
-| `npm run test:run`  | Tests unitarios una sola vez (lo que usa CI)     |
-| `npm run test:e2e`  | Tests de extremo a extremo (Playwright)          |
+| Script              | Descripción                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `npm run dev`       | Servidor de desarrollo (Turbopack)                                   |
+| `npm run build`     | Build de producción                                                  |
+| `npm run start`     | Sirve el build de producción                                         |
+| `npm run lint`      | ESLint                                                               |
+| `npm run typecheck` | Genera los tipos de rutas y comprueba TypeScript                     |
+| `npm run format`    | Formatea con Prettier                                                |
+| `npm run test`      | Tests unitarios en modo vigilancia (Vitest)                          |
+| `npm run test:run`  | Tests unitarios una sola vez (lo que usa CI)                         |
+| `npm run test:e2e`  | Tests de extremo a extremo (Playwright)                              |
+| `npm run api:types` | Regenera los tipos de la API desde su OpenAPI (con la API levantada) |
 
 ---
 

@@ -1,4 +1,16 @@
-import type { DeckFormat } from "../types/deck";
+import type { DeckFormat, DeckVisibility } from "../types/deck";
+
+/** Formatos en el orden en que se ofrecen, con Commander primero. */
+export const DECK_FORMATS = [
+  "commander",
+  "standard",
+  "pioneer",
+  "modern",
+  "legacy",
+  "vintage",
+  "pauper",
+  "brawl",
+] as const satisfies readonly DeckFormat[];
 
 /** Nombres visibles de cada formato. Compartido por tarjetas, filtros y selectores. */
 export const DECK_FORMAT_LABELS: Record<DeckFormat, string> = {
@@ -10,4 +22,17 @@ export const DECK_FORMAT_LABELS: Record<DeckFormat, string> = {
   vintage: "Vintage",
   pauper: "Pauper",
   brawl: "Brawl",
+};
+
+/** Del más cerrado al más abierto: privado es el valor por defecto. */
+export const DECK_VISIBILITIES = [
+  "private",
+  "unlisted",
+  "public",
+] as const satisfies readonly DeckVisibility[];
+
+export const DECK_VISIBILITY_LABELS: Record<DeckVisibility, string> = {
+  private: "Privado",
+  unlisted: "Oculto (solo con enlace)",
+  public: "Público",
 };

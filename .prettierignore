@@ -2,3 +2,5 @@
 node_modules
 package-lock.json
 next-env.d.ts
+# Generado por `npm run api:types` desde la especificación OpenAPI de la API.
+src/lib/api/openapi.d.ts

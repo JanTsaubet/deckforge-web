@@ -35,6 +35,7 @@ export interface DeckSummary {
   ownerUsername: string;
   name: string;
   format: DeckFormat;
+  visibility: DeckVisibility;
   colorIdentity: ManaColor[];
   cardCount: number;
   coverImageUrl?: string;
