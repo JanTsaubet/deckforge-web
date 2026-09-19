@@ -59,6 +59,24 @@ export async function deleteDeckAction(deckId: string): Promise<DeckActionResult
   return { ok: true };
 }
 
+export interface DuplicateDeckResult extends DeckActionResult {
+  /** Nombre de la copia, para el aviso de confirmación. */
+  copyName?: string;
+}
+
+export async function duplicateDeckAction(deckId: string): Promise<DuplicateDeckResult> {
+  let copyName: string;
+  try {
+    const repository = await createServerDeckRepository();
+    copyName = (await repository.duplicate(deckId)).name;
+  } catch (error) {
+    return { ok: false, error: describeDeckError(error) };
+  }
+
+  revalidatePath(routes.decks);
+  return { ok: true, copyName };
+}
+
 function describeDeckError(error: unknown): string {
   if (error instanceof HttpError) {
     if (error.status === 401) return "Tu sesión ha caducado. Vuelve a iniciar sesión.";

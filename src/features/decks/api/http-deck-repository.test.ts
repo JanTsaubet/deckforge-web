@@ -91,3 +91,23 @@ describe("HttpDeckRepository", () => {
     expect((error as HttpError).status).toBe(401);
   });
 });
+
+describe("HttpDeckRepository.duplicate", () => {
+  it("pide la copia a la API y devuelve el mazo nuevo", async () => {
+    let path = "";
+    server.use(
+      http.post(`${API}/v1/decks/:id/duplicate`, ({ request }) => {
+        path = new URL(request.url).pathname;
+        return HttpResponse.json(
+          { ...apiDeck, id: "copia", name: "Copia de Atraxa, superamigos" },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const copy = await repository().duplicate(apiDeck.id);
+
+    expect(path).toBe(`/v1/decks/${apiDeck.id}/duplicate`);
+    expect(copy.name).toBe("Copia de Atraxa, superamigos");
+  });
+});

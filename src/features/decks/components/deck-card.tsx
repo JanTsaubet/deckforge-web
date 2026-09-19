@@ -4,16 +4,16 @@ import Link from "next/link";
 import { routes } from "@/config/routes";
 import { DECK_FORMAT_LABELS, DECK_VISIBILITY_LABELS } from "../constants/deck-formats";
 import type { DeckSummary, DeckVisibility } from "../types/deck";
-import { DeleteDeckButton } from "./delete-deck-button";
+import { DeckActions } from "./deck-actions";
 
-const VISIBILITY_ICONS: Record<DeckVisibility, typeof Lock> = {
+export const VISIBILITY_ICONS: Record<DeckVisibility, typeof Lock> = {
   private: Lock,
   unlisted: Link2,
   public: Globe,
 };
 
 /**
- * Tarjeta de mazo para rejillas. El botón de borrar va FUERA del enlace:
+ * Tarjeta de mazo para la rejilla. Las acciones van FUERA del enlace:
  * un elemento interactivo dentro de otro no es HTML válido.
  */
 export function DeckCard({ deck }: { deck: DeckSummary }) {
@@ -53,7 +53,7 @@ export function DeckCard({ deck }: { deck: DeckSummary }) {
       </Link>
 
       <div className="absolute top-2 right-2">
-        <DeleteDeckButton deckId={deck.id} deckName={deck.name} />
+        <DeckActions deckId={deck.id} deckName={deck.name} revealOnHover />
       </div>
     </div>
   );

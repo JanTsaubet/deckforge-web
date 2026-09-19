@@ -4,6 +4,8 @@ import { Plus, X } from "lucide-react";
 import { useActionState, useId, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FormError, SelectField, TextField } from "@/components/ui/form-field";
+import { MODAL_CLASSES } from "@/components/ui/modal-styles";
+import { toast } from "@/components/ui/toast";
 import { createDeckAction, type DeckActionResult } from "../actions/deck-actions";
 import {
   DECK_FORMAT_LABELS,
@@ -18,8 +20,7 @@ interface CreateDeckDialogProps {
 
 /**
  * Diálogo para crear un mazo, sobre el elemento nativo <dialog>: el navegador ya atrapa el
- * foco, cierra con Escape y deja inerte el resto de la página. La animación de entrada es
- * CSS puro (@starting-style), sin JavaScript.
+ * foco, cierra con Escape y deja inerte el resto de la página.
  */
 export function CreateDeckDialog({ triggerLabel = "Nuevo mazo" }: CreateDeckDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -30,6 +31,7 @@ export function CreateDeckDialog({ triggerLabel = "Nuevo mazo" }: CreateDeckDial
     async (previous: DeckActionResult | null, formData: FormData) => {
       const result = await createDeckAction(previous, formData);
       if (result.ok) {
+        toast.success(`«${String(formData.get("name")).trim()}» creado.`);
         formRef.current?.reset();
         dialogRef.current?.close();
       }
@@ -47,11 +49,7 @@ export function CreateDeckDialog({ triggerLabel = "Nuevo mazo" }: CreateDeckDial
         {triggerLabel}
       </Button>
 
-      <dialog
-        ref={dialogRef}
-        aria-labelledby={titleId}
-        className="m-auto w-[calc(100%-2rem)] max-w-md scale-95 rounded-2xl border border-border bg-surface-raised p-6 text-foreground opacity-0 shadow-2xl transition-[opacity,scale,display,overlay] transition-discrete duration-200 ease-smooth backdrop:bg-black/60 backdrop:backdrop-blur-sm open:scale-100 open:opacity-100 starting:open:scale-95 starting:open:opacity-0"
-      >
+      <dialog ref={dialogRef} aria-labelledby={titleId} className={MODAL_CLASSES}>
         <form ref={formRef} action={formAction} className="flex flex-col gap-4">
           <header className="flex items-center justify-between">
             <h2 id={titleId} className="text-lg font-semibold">

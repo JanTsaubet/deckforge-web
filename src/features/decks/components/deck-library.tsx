@@ -1,16 +1,19 @@
-import { Layers } from "lucide-react";
+import { Layers, SearchX } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PlaceholderPanel } from "@/components/ui/placeholder-panel";
+import { applyLibraryFilters, type LibraryFilters } from "../lib/library-filters";
 import type { DeckSummary } from "../types/deck";
 import { CreateDeckDialog } from "./create-deck-dialog";
 import { DeckCard } from "./deck-card";
+import { DeckListTable } from "./deck-list-table";
+import { LibraryToolbar } from "./library-toolbar";
 
 interface DeckLibraryProps {
   decks: DeckSummary[];
+  filters: LibraryFilters;
 }
 
-/** Biblioteca de mazos: barra de filtros + rejilla de mazos (o estado vacío). */
-export function DeckLibrary({ decks }: DeckLibraryProps) {
+/** Biblioteca: barra de herramientas y mazos en rejilla o lista (o el estado vacío que toque). */
+export function DeckLibrary({ decks, filters }: DeckLibraryProps) {
   if (decks.length === 0) {
     return (
       <EmptyState
@@ -22,20 +25,30 @@ export function DeckLibrary({ decks }: DeckLibraryProps) {
     );
   }
 
+  const visible = applyLibraryFilters([...decks], filters);
+
   return (
     <div className="flex flex-col gap-6">
-      <PlaceholderPanel
-        title="Filtros y ordenación"
-        phase="Fase 2"
-        description="Formato, colores, carpetas y etiquetas, fecha de modificación y vista rejilla/lista."
-      />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {decks.map((deck) => (
-          <li key={deck.id}>
-            <DeckCard deck={deck} />
-          </li>
-        ))}
-      </ul>
+      <LibraryToolbar filters={filters} resultCount={visible.length} totalCount={decks.length} />
+
+      {visible.length === 0 ? (
+        // Distinto del estado vacío de arriba: los mazos existen, pero el filtro los esconde.
+        <EmptyState
+          icon={SearchX}
+          title="Ningún mazo coincide"
+          description="Prueba con otro nombre o quita el filtro de formato."
+        />
+      ) : filters.view === "list" ? (
+        <DeckListTable decks={visible} />
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {visible.map((deck) => (
+            <li key={deck.id}>
+              <DeckCard deck={deck} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

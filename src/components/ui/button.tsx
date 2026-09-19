@@ -5,6 +5,7 @@ const variantClasses = {
   primary: "bg-accent text-accent-foreground hover:brightness-110",
   secondary: "border border-border bg-surface-raised text-foreground hover:bg-border/60",
   ghost: "text-muted hover:bg-surface-raised hover:text-foreground",
+  danger: "bg-danger text-white hover:brightness-110",
 } as const;
 
 const sizeClasses = {

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { useState, type ReactNode } from "react";
+import { Toaster } from "@/components/ui/toast";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -27,7 +28,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {/* reducedMotion="user": respeta la preferencia del sistema "reducir movimiento". */}
-      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+      <MotionConfig reducedMotion="user">
+        {children}
+        <Toaster />
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

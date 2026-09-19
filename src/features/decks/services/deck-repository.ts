@@ -26,6 +26,8 @@ export interface DeckWriter {
   create(input: CreateDeckInput): Promise<Deck>;
   update(deckId: string, input: UpdateDeckInput): Promise<Deck>;
   remove(deckId: string): Promise<void>;
+  /** Copia un mazo propio, o uno público de otra persona, a la biblioteca del usuario. */
+  duplicate(deckId: string): Promise<Deck>;
 }
 
 export interface DeckRepository extends DeckReader, DeckWriter {}

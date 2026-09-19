@@ -267,10 +267,11 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Registro y acceso con email y contraseña, sesión y protección de rutas con `proxy.ts`
 - [ ] Acceso con OAuth (Google, Discord): hay que crear antes las credenciales en sus consolas
 - [x] `HttpDeckRepository` que implemente `DeckRepository`
-- [x] Biblioteca conectada a la API: crear y borrar mazos
-- [ ] Biblioteca: duplicar, carpetas y etiquetas, filtros, vista rejilla/lista
+- [x] Biblioteca conectada a la API: crear, duplicar (también mazos públicos ajenos) y borrar con confirmación
+- [x] Biblioteca: búsqueda sin tildes, filtro de formato, orden y vista rejilla/lista, todo guardado en la URL
+- [ ] Biblioteca: carpetas y etiquetas
 - [ ] Importación de listas en texto (MTGA/MTGO) resolviendo cartas con `/cards/collection`
-- [ ] Probar el recorrido completo contra un Postgres real (pendiente de instalar Docker)
+- [x] Recorrido completo verificado contra Postgres real: registro, crear y borrar mazos, cerrar sesión
 
 ### Fase 3 · Editor de mazos
 

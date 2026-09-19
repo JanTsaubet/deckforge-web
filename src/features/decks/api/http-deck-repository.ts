@@ -59,6 +59,14 @@ export class HttpDeckRepository implements DeckRepository {
   async remove(deckId: string): Promise<void> {
     await this.http.request<null>(deckPath(deckId), { method: "DELETE", ...NO_STORE });
   }
+
+  async duplicate(deckId: string): Promise<Deck> {
+    const copy = await this.http.request<ApiDeck>(`${deckPath(deckId)}/duplicate`, {
+      method: "POST",
+      ...NO_STORE,
+    });
+    return toDeck(copy);
+  }
 }
 
 function deckPath(deckId: string): string {

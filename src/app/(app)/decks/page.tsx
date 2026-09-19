@@ -7,10 +7,15 @@ import { routes } from "@/config/routes";
 import { createServerDeckRepository } from "@/features/decks/api/server-deck-repository";
 import { CreateDeckDialog } from "@/features/decks/components/create-deck-dialog";
 import { DeckLibrary } from "@/features/decks/components/deck-library";
+import { parseLibraryFilters } from "@/features/decks/lib/library-filters";
 import type { DeckSummary } from "@/features/decks/types/deck";
 import { HttpError } from "@/lib/http/http-client";
 
 export const metadata: Metadata = { title: "Mis mazos" };
+
+interface DecksPageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
 
 async function loadMyDecks(): Promise<DeckSummary[]> {
   try {
@@ -27,8 +32,11 @@ async function loadMyDecks(): Promise<DeckSummary[]> {
 }
 
 /** Pantalla 1 · Biblioteca de mazos del usuario. */
-export default async function DecksPage() {
-  const decks = await loadMyDecks();
+export default async function DecksPage({ searchParams }: DecksPageProps) {
+  const [decks, filters] = await Promise.all([
+    loadMyDecks(),
+    searchParams.then(parseLibraryFilters),
+  ]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -45,7 +53,7 @@ export default async function DecksPage() {
           </>
         }
       />
-      <DeckLibrary decks={decks} />
+      <DeckLibrary decks={decks} filters={filters} />
     </div>
   );
 }
