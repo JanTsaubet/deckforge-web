@@ -59,9 +59,12 @@ test("el scroll carga la página siguiente sin pulsar nada", async ({ page }) =>
   // Al llegar la última página ya no hay más que cargar y el botón desaparece.
   await expect(cargarMas).toBeHidden();
 
-  // Scroll real hasta el final: pulsar End depende de dónde esté el foco en ese momento.
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await expect(page.getByTitle(`Carta 2-${CARDS_PER_PAGE - 1}`)).toBeVisible({ timeout: 15_000 });
+  // Al añadirse la página 2 la rejilla crece, así que el primer scroll se queda a medias
+  // y la última carta aún no está en la ventana virtualizada: hay que insistir.
+  await expect(async () => {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await expect(page.getByTitle(`Carta 2-${CARDS_PER_PAGE - 1}`)).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 20_000 });
 });
 
 test("los filtros reescriben la consulta y la URL", async ({ page }) => {
