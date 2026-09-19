@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 en curso: API, cuentas, biblioteca con carpetas y etiquetas, e importación de listas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). Siguiente: Fase 3, el editor de mazos. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -72,7 +72,7 @@ flowchart LR
 | Repositorio       | Estado                | Responsabilidad                                                                                                     |
 | ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **deckforge-web** | ✅ Este repositorio   | Interfaz, SSR/SEO de mazos y cartas públicas, BFF ligero (Route Handlers que hacen de proxy cacheado a Scryfall).   |
-| **deckforge-api** | 🚧 En curso           | Autenticación, usuarios, mazos, colección, búsqueda de mazos, recomendaciones y worker de sincronización de cartas. |
+| **deckforge-api** | ✅ En marcha          | Autenticación, usuarios, mazos, colección, búsqueda de mazos, recomendaciones y worker de sincronización de cartas. |
 | deckforge-recs    | 💭 A evaluar (Fase 6) | Solo si el motor de recomendaciones necesita ML en Python; si no, vive como módulo de `deckforge-api`.              |
 
 **¿Por qué separar web y API?** El worker que sincroniza los _bulk data_ de Scryfall (cientos de MB al día) y el cálculo
@@ -259,13 +259,13 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Página `/cards/[cardId]`: caras, texto de reglas, legalidad, precios, rulings e impresiones en streaming
 - [x] Gestión de errores (`error.tsx`), estados vacíos y _skeletons_
 
-### Fase 2 · Backend, cuentas y biblioteca 🚧
+### Fase 2 · Backend, cuentas y biblioteca ✅
 
 - [x] Crear `deckforge-api`: NestJS 12 + PostgreSQL (Docker) + Drizzle + Better Auth, con tests e2e sobre PGlite
 - [x] Worker de sincronización de los _bulk data_ de Scryfall: catálogo local de ~116 000 impresiones, actualizado cada día; la biblioteca ya muestra identidad de color y portada
 - [x] Generar tipos del cliente desde OpenAPI (`npm run api:types`)
 - [x] Registro y acceso con email y contraseña, sesión y protección de rutas con `proxy.ts`
-- [ ] Acceso con OAuth (Google, Discord): hay que crear antes las credenciales en sus consolas
+- [x] Acceso con OAuth (Google y Discord): cada proveedor se activa al poner sus credenciales en la API (ver su README); sin ellas, su botón no aparece
 - [x] `HttpDeckRepository` que implemente `DeckRepository`
 - [x] Biblioteca conectada a la API: crear, duplicar (también mazos públicos ajenos) y borrar con confirmación
 - [x] Biblioteca: búsqueda sin tildes, filtro de formato, orden y vista rejilla/lista, todo guardado en la URL

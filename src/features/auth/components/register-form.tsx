@@ -40,10 +40,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
-    >
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <TextField label="Nombre" name="name" autoComplete="name" required autoFocus />
       <TextField
         label="Nombre de usuario"

@@ -42,10 +42,7 @@ export function LoginForm({ next }: LoginFormProps) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6"
-    >
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <TextField
         label="Email o nombre de usuario"
         name="identifier"
