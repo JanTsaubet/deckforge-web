@@ -15,6 +15,8 @@ const apiDeck = {
   folderId: null,
   tags: ["cedh"],
   cardCount: 0,
+  colorIdentity: [],
+  coverImageUrl: null,
   updatedAt: "2026-09-19T10:00:00.000Z",
   createdAt: "2026-09-19T09:00:00.000Z",
   description: null,
@@ -47,7 +49,19 @@ describe("HttpDeckRepository", () => {
     ]);
   });
 
-  it("sin datos de cartas todavía, el resumen no inventa identidad de color ni portada", async () => {
+  it("toma de la API la identidad de color y la portada", async () => {
+    server.use(
+      http.get(`${API}/v1/decks`, () =>
+        HttpResponse.json([{ ...apiDeck, colorIdentity: ["W", "U"], coverImageUrl: "art.jpg" }]),
+      ),
+    );
+
+    const [deck] = await repository().listMine();
+
+    expect(deck).toMatchObject({ colorIdentity: ["W", "U"], coverImageUrl: "art.jpg" });
+  });
+
+  it("sin portada (ninguna carta en el catálogo), no inventa una", async () => {
     server.use(http.get(`${API}/v1/decks`, () => HttpResponse.json([apiDeck])));
 
     const [deck] = await repository().listMine();

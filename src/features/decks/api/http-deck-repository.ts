@@ -82,9 +82,9 @@ function toDeckSummary(deck: ApiDeckSummary): DeckSummary {
     visibility: deck.visibility,
     folderId: deck.folderId ?? undefined,
     tags: deck.tags,
-    // La API todavía no conoce los datos de las cartas (llegarán con el catálogo
-    // sincronizado): sin ellos no hay identidad de color ni portada que mostrar.
-    colorIdentity: [],
+    colorIdentity: deck.colorIdentity,
+    // La API la calcula con su catálogo local: sin cartas conocidas, no hay portada.
+    coverImageUrl: deck.coverImageUrl ?? undefined,
     cardCount: deck.cardCount,
     updatedAt: deck.updatedAt,
   };

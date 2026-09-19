@@ -134,6 +134,10 @@ export interface components {
             tags: string[];
             /** @description Suma de las cantidades de todas las zonas */
             cardCount: number;
+            /** @description Identidad de color en orden WUBRG: la del comandante, o la de todo el mazo */
+            colorIdentity: ("W" | "U" | "B" | "R" | "G")[];
+            /** @description Ilustración de portada: la del comandante, o la carta de más coste */
+            coverImageUrl: string | null;
             /** Format: date-time */
             updatedAt: string;
         };
@@ -197,6 +201,10 @@ export interface components {
             tags: string[];
             /** @description Suma de las cantidades de todas las zonas */
             cardCount: number;
+            /** @description Identidad de color en orden WUBRG: la del comandante, o la de todo el mazo */
+            colorIdentity: ("W" | "U" | "B" | "R" | "G")[];
+            /** @description Ilustración de portada: la del comandante, o la carta de más coste */
+            coverImageUrl: string | null;
             /** Format: date-time */
             updatedAt: string;
             description: string | null;

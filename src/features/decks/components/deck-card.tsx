@@ -2,6 +2,7 @@ import { Globe, Layers, Link2, Lock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { routes } from "@/config/routes";
+import { ColorIdentity } from "@/features/cards/components/color-identity";
 import { DECK_FORMAT_LABELS, DECK_VISIBILITY_LABELS } from "../constants/deck-formats";
 import type { LibraryFilters } from "../lib/library-filters";
 import type { DeckFolder, DeckSummary, DeckVisibility } from "../types/deck";
@@ -50,14 +51,17 @@ export function DeckCard({ deck, folders, knownTags, filters }: DeckCardProps) {
 
       <div className="space-y-2 p-4">
         <div className="space-y-1">
-          <h3 className="truncate font-semibold">
-            <Link
-              href={routes.deck(deck.id)}
-              className="outline-none after:absolute after:inset-0 after:content-['']"
-            >
-              {deck.name}
-            </Link>
-          </h3>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="truncate font-semibold">
+              <Link
+                href={routes.deck(deck.id)}
+                className="outline-none after:absolute after:inset-0 after:content-['']"
+              >
+                {deck.name}
+              </Link>
+            </h3>
+            <ColorIdentity colors={deck.colorIdentity} className="shrink-0" />
+          </div>
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <VisibilityIcon
               className="size-3.5"

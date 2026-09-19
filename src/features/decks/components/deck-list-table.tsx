@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { routes } from "@/config/routes";
+import { ColorIdentity } from "@/features/cards/components/color-identity";
 import { formatRelativeDate } from "@/lib/utils/format-date";
 import { DECK_FORMAT_LABELS, DECK_VISIBILITY_LABELS } from "../constants/deck-formats";
 import type { LibraryFilters } from "../lib/library-filters";
@@ -31,6 +32,9 @@ export function DeckListTable({ decks, folders, knownTags, filters }: DeckListTa
               Nombre
             </th>
             <th scope="col" className={`${CELL} font-medium`}>
+              Colores
+            </th>
+            <th scope="col" className={`${CELL} font-medium`}>
               Formato
             </th>
             <th scope="col" className={`${CELL} text-right font-medium`}>
@@ -58,6 +62,9 @@ export function DeckListTable({ decks, folders, knownTags, filters }: DeckListTa
                   {deck.name}
                 </Link>
                 <DeckTags tags={deck.tags} filters={filters} className="mt-1" />
+              </td>
+              <td className={CELL}>
+                <ColorIdentity colors={deck.colorIdentity} />
               </td>
               <td className={`${CELL} text-muted`}>{DECK_FORMAT_LABELS[deck.format]}</td>
               <td className={`${CELL} text-right text-muted tabular-nums`}>{deck.cardCount}</td>

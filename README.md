@@ -262,7 +262,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 ### Fase 2 · Backend, cuentas y biblioteca 🚧
 
 - [x] Crear `deckforge-api`: NestJS 12 + PostgreSQL (Docker) + Drizzle + Better Auth, con tests e2e sobre PGlite
-- [ ] Worker de sincronización de los _bulk data_ de Scryfall
+- [x] Worker de sincronización de los _bulk data_ de Scryfall: catálogo local de ~116 000 impresiones, actualizado cada día; la biblioteca ya muestra identidad de color y portada
 - [x] Generar tipos del cliente desde OpenAPI (`npm run api:types`)
 - [x] Registro y acceso con email y contraseña, sesión y protección de rutas con `proxy.ts`
 - [ ] Acceso con OAuth (Google, Discord): hay que crear antes las credenciales en sus consolas
