@@ -64,3 +64,14 @@ export interface ScryfallRuling {
   published_at: string;
   comment: string;
 }
+
+/** Identificador de `POST /cards/collection` (solo las variantes que usa la app). */
+export type ScryfallCardIdentifier =
+  { set: string; collector_number: string } | { name: string; set?: string };
+
+export interface ScryfallCollection {
+  object: "list";
+  data: ScryfallCard[];
+  /** Los identificadores sin carta, tal y como se enviaron. */
+  not_found: ScryfallCardIdentifier[];
+}

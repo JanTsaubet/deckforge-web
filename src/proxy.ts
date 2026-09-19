@@ -19,5 +19,5 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // La vista de un mazo (/decks/:id) NO está aquí: los mazos públicos se comparten sin cuenta.
-  matcher: ["/decks", "/decks/:deckId/edit", "/settings/:path*"],
+  matcher: ["/decks", "/decks/import", "/decks/:deckId/edit", "/settings/:path*"],
 };

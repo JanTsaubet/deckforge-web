@@ -80,6 +80,8 @@ function toDeckSummary(deck: ApiDeckSummary): DeckSummary {
     name: deck.name,
     format: deck.format,
     visibility: deck.visibility,
+    folderId: deck.folderId ?? undefined,
+    tags: deck.tags,
     // La API todavía no conoce los datos de las cartas (llegarán con el catálogo
     // sincronizado): sin ellos no hay identidad de color ni portada que mostrar.
     colorIdentity: [],
@@ -96,6 +98,8 @@ function toDeck(deck: ApiDeck): Deck {
     description: deck.description ?? undefined,
     format: deck.format,
     visibility: deck.visibility,
+    folderId: deck.folderId ?? undefined,
+    tags: deck.tags,
     entries: deck.entries,
     createdAt: deck.createdAt,
     updatedAt: deck.updatedAt,

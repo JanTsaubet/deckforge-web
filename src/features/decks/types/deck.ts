@@ -23,6 +23,10 @@ export interface Deck {
   description?: string;
   format: DeckFormat;
   visibility: DeckVisibility;
+  /** Carpeta de la biblioteca del dueño; sin carpeta si no tiene. */
+  folderId?: string;
+  /** Etiquetas del mazo, en minúsculas: "cedh", "presupuesto"… */
+  tags: string[];
   entries: DeckEntry[];
   /** Fechas en ISO 8601. */
   createdAt: string;
@@ -36,10 +40,19 @@ export interface DeckSummary {
   name: string;
   format: DeckFormat;
   visibility: DeckVisibility;
+  folderId?: string;
+  tags: string[];
   colorIdentity: ManaColor[];
   cardCount: number;
   coverImageUrl?: string;
   updatedAt: string;
+}
+
+/** Carpeta de la biblioteca. Planas: no hay subcarpetas. */
+export interface DeckFolder {
+  id: string;
+  name: string;
+  deckCount: number;
 }
 
 export interface DeckSearchParams {

@@ -1,8 +1,13 @@
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
-import { NO_RESULTS_QUERY, scryfallDoubleFacedFixture } from "@/test/msw/handlers";
+import {
+  NO_RESULTS_QUERY,
+  scryfallCardFixture,
+  scryfallDoubleFacedFixture,
+} from "@/test/msw/handlers";
 import { server } from "@/test/msw/server";
 import { createScryfallCardRepository } from "./scryfall-card-repository";
+import type { ScryfallCardIdentifier } from "./scryfall-types";
 
 describe("ScryfallCardRepository", () => {
   it("traduce la respuesta de Scryfall al modelo de dominio", async () => {
@@ -123,5 +128,80 @@ describe("rulings e impresiones", () => {
     await expect(createScryfallCardRepository().getPrintings("sin-impresiones")).resolves.toEqual(
       [],
     );
+  });
+});
+
+describe("getCollection", () => {
+  /**
+   * Imita `/cards/collection`: encuentra por nombre las cartas de `known` y devuelve el resto
+   * en `not_found`. Guarda cada lote recibido para poder comprobarlo.
+   */
+  function mockCollection(known: string[]) {
+    const batches: ScryfallCardIdentifier[][] = [];
+    server.use(
+      http.post("https://api.scryfall.com/cards/collection", async ({ request }) => {
+        const { identifiers } = (await request.json()) as { identifiers: ScryfallCardIdentifier[] };
+        batches.push(identifiers);
+        const isKnown = (id: ScryfallCardIdentifier) => "name" in id && known.includes(id.name);
+        return HttpResponse.json({
+          object: "list",
+          data: identifiers
+            .filter(isKnown)
+            .map((id) => ({ ...scryfallCardFixture, name: "name" in id ? id.name : "" })),
+          not_found: identifiers.filter((id) => !isKnown(id)),
+        });
+      }),
+    );
+    return batches;
+  }
+
+  it("devuelve las cartas en el orden pedido, con undefined en las que no existen", async () => {
+    mockCollection(["Sol Ring", "Opt"]);
+
+    const cards = await createScryfallCardRepository().getCollection([
+      { name: "Sol Ring" },
+      { name: "Sol Rnig" },
+      { name: "Opt" },
+    ]);
+
+    expect(cards.map((card) => card?.name)).toEqual(["Sol Ring", undefined, "Opt"]);
+  });
+
+  it("no pide dos veces la misma carta", async () => {
+    const batches = mockCollection(["Island"]);
+
+    const cards = await createScryfallCardRepository().getCollection([
+      { name: "Island" },
+      { name: "island" },
+    ]);
+
+    expect(batches[0]).toHaveLength(1);
+    expect(cards.map((card) => card?.name)).toEqual(["Island", "Island"]);
+  });
+
+  it("parte las listas largas en lotes de 75, el máximo de Scryfall", async () => {
+    const names = Array.from({ length: 80 }, (_, index) => `Carta ${index}`);
+    const batches = mockCollection(names);
+
+    const cards = await createScryfallCardRepository().getCollection(
+      names.map((name) => ({ name })),
+    );
+
+    expect(batches.map((batch) => batch.length)).toEqual([75, 5]);
+    expect(cards.at(-1)?.name).toBe("Carta 79");
+  });
+
+  it("traduce los identificadores al formato de Scryfall", async () => {
+    const batches = mockCollection([]);
+
+    await createScryfallCardRepository().getCollection([
+      { setCode: "c21", collectorNumber: "263" },
+      { name: "Lightning Bolt", setCode: "m11" },
+    ]);
+
+    expect(batches[0]).toEqual([
+      { set: "c21", collector_number: "263" },
+      { name: "Lightning Bolt", set: "m11" },
+    ]);
   });
 });

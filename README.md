@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 en curso: API, cuentas y biblioteca de mazos conectadas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 en curso: API, cuentas, biblioteca con carpetas y etiquetas, e importación de listas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -269,8 +269,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] `HttpDeckRepository` que implemente `DeckRepository`
 - [x] Biblioteca conectada a la API: crear, duplicar (también mazos públicos ajenos) y borrar con confirmación
 - [x] Biblioteca: búsqueda sin tildes, filtro de formato, orden y vista rejilla/lista, todo guardado en la URL
-- [ ] Biblioteca: carpetas y etiquetas
-- [ ] Importación de listas en texto (MTGA/MTGO) resolviendo cartas con `/cards/collection`
+- [x] Biblioteca: carpetas (crear, renombrar en línea, borrar sin perder mazos) y etiquetas por mazo, filtrables desde la URL
+- [x] Importación de listas en texto (MTG Arena, MTGO, Moxfield…) con vista previa: resuelve las cartas con `/cards/collection`, reintenta por nombre si la edición no existe y señala las líneas que fallan
 - [x] Recorrido completo verificado contra Postgres real: registro, crear y borrar mazos, cerrar sesión
 
 ### Fase 3 · Editor de mazos

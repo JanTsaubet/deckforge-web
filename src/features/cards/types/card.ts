@@ -67,3 +67,10 @@ export interface CardRuling {
   publishedAt: string;
   comment: string;
 }
+
+/**
+ * Cómo identificar una carta al buscar varias a la vez: por impresión exacta (edición y
+ * número de coleccionista) o por nombre, opcionalmente limitado a una edición.
+ */
+export type CardIdentifier =
+  { setCode: string; collectorNumber: string } | { name: string; setCode?: string };

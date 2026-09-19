@@ -20,6 +20,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FoldersController_listMine"];
+        put?: never;
+        post: operations["FoldersController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["FoldersController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["FoldersController_rename"];
+        trace?: never;
+    };
     "/v1/decks": {
         parameters: {
             query?: never;
@@ -72,6 +104,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        FolderDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example cEDH */
+            name: string;
+            /** @description Mazos que contiene */
+            deckCount: number;
+        };
+        SaveFolderDto: {
+            /** @example cEDH */
+            name: string;
+        };
         DeckSummaryDto: {
             /** Format: uuid */
             id: string;
@@ -85,10 +129,23 @@ export interface components {
             format: "commander" | "standard" | "pioneer" | "modern" | "legacy" | "vintage" | "pauper" | "brawl";
             /** @enum {string} */
             visibility: "public" | "unlisted" | "private";
+            /** Format: uuid */
+            folderId: string | null;
+            tags: string[];
             /** @description Suma de las cantidades de todas las zonas */
             cardCount: number;
             /** Format: date-time */
             updatedAt: string;
+        };
+        DeckEntryInputDto: {
+            /**
+             * Format: uuid
+             * @description Id de Scryfall de la impresión
+             */
+            cardId: string;
+            /** @enum {string} */
+            board: "commander" | "main" | "sideboard" | "maybeboard";
+            quantity: number;
         };
         CreateDeckDto: {
             /** @example Atraxa, superamigos */
@@ -104,6 +161,15 @@ export interface components {
              * @enum {string}
              */
             visibility: "public" | "unlisted" | "private";
+            /**
+             * Format: uuid
+             * @description Carpeta de la biblioteca; `null` lo saca de la que tenga
+             */
+            folderId?: string | null;
+            /** @description Se guardan en minúsculas y sin repetir */
+            tags?: string[];
+            /** @description Cartas iniciales. Las líneas repetidas (misma carta y zona) se suman. */
+            entries?: components["schemas"]["DeckEntryInputDto"][];
         };
         DeckEntryDto: {
             /** @description Id de Scryfall de la impresión */
@@ -126,6 +192,9 @@ export interface components {
             format: "commander" | "standard" | "pioneer" | "modern" | "legacy" | "vintage" | "pauper" | "brawl";
             /** @enum {string} */
             visibility: "public" | "unlisted" | "private";
+            /** Format: uuid */
+            folderId: string | null;
+            tags: string[];
             /** @description Suma de las cantidades de todas las zonas */
             cardCount: number;
             /** Format: date-time */
@@ -149,6 +218,13 @@ export interface components {
              * @enum {string}
              */
             visibility: "public" | "unlisted" | "private";
+            /**
+             * Format: uuid
+             * @description Carpeta de la biblioteca; `null` lo saca de la que tenga
+             */
+            folderId?: string | null;
+            /** @description Se guardan en minúsculas y sin repetir */
+            tags?: string[];
         };
     };
     responses: never;
@@ -175,6 +251,143 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+        };
+    };
+    FoldersController_listMine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Carpetas del usuario, por nombre */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FoldersController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveFolderDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ya tienes una carpeta con ese nombre */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FoldersController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FoldersController_rename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveFolderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Ya tienes una carpeta con ese nombre */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

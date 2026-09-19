@@ -1,15 +1,28 @@
 import type { Paginated } from "@/types/pagination";
-import type { Deck, DeckSearchParams, DeckSummary } from "../types/deck";
+import type { Deck, DeckEntry, DeckSearchParams, DeckSummary } from "../types/deck";
 
-/** Datos para crear un mazo. Formato y visibilidad son opcionales: la API pone los suyos. */
+/** Una carta al crear un mazo: sin etiquetas por carta, que llegan con el editor. */
+export type NewDeckEntry = Pick<DeckEntry, "cardId" | "board" | "quantity">;
+
+/**
+ * Datos para crear un mazo. Todo salvo el nombre es opcional: la API pone sus valores por
+ * defecto. `entries` permite crearlo ya con cartas (importación) en una sola operación.
+ */
 export type CreateDeckInput = Pick<Deck, "name"> &
-  Partial<Pick<Deck, "description" | "format" | "visibility">>;
+  Partial<Pick<Deck, "description" | "format" | "visibility" | "folderId" | "tags">> & {
+    entries?: NewDeckEntry[];
+  };
 
 /**
  * Cambios en los datos del mazo. Las cartas no van aquí: se editarán con operaciones
  * propias (añadir, quitar, mover de zona) en el editor de la Fase 3.
  */
-export type UpdateDeckInput = Partial<Pick<Deck, "name" | "description" | "format" | "visibility">>;
+export type UpdateDeckInput = Partial<
+  Pick<Deck, "name" | "description" | "format" | "visibility" | "tags">
+> & {
+  /** `null` saca el mazo de su carpeta. */
+  folderId?: string | null;
+};
 
 /**
  * Contratos de persistencia de mazos, separados por responsabilidad

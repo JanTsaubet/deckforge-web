@@ -1,5 +1,5 @@
 import type { Paginated } from "@/types/pagination";
-import type { Card, CardRuling, CardSearchParams } from "../types/card";
+import type { Card, CardIdentifier, CardRuling, CardSearchParams } from "../types/card";
 
 /**
  * Contrato de acceso a cartas (principio de inversión de dependencias).
@@ -14,4 +14,9 @@ export interface CardRepository {
   getRulings(cardId: string): Promise<CardRuling[]>;
   /** Impresiones de la carta, de la más reciente a la más antigua. */
   getPrintings(oracleId: string): Promise<Card[]>;
+  /**
+   * Varias cartas de una vez (para importar listas). El resultado va en el mismo orden que
+   * los identificadores, con `undefined` en los que no existen.
+   */
+  getCollection(identifiers: CardIdentifier[]): Promise<Array<Card | undefined>>;
 }

@@ -30,6 +30,8 @@ const CONTROL =
 
 interface LibraryToolbarProps {
   filters: LibraryFilters;
+  /** Etiquetas usadas en la biblioteca; sin ellas no se enseña su filtro. */
+  tags: string[];
   resultCount: number;
   totalCount: number;
 }
@@ -38,7 +40,7 @@ interface LibraryToolbarProps {
  * Búsqueda, filtro, orden y tipo de vista de la biblioteca. No filtra nada por sí misma:
  * reescribe la URL, y la página (en el servidor) aplica los filtros.
  */
-export function LibraryToolbar({ filters, resultCount, totalCount }: LibraryToolbarProps) {
+export function LibraryToolbar({ filters, tags, resultCount, totalCount }: LibraryToolbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [query, setQuery] = useState(filters.query);
@@ -93,6 +95,23 @@ export function LibraryToolbar({ filters, resultCount, totalCount }: LibraryTool
             </option>
           ))}
         </select>
+
+        {(tags.length > 0 || filters.tag) && (
+          <select
+            aria-label="Etiqueta"
+            value={filters.tag}
+            onChange={(event) => update({ tag: event.target.value })}
+            className={CONTROL}
+          >
+            <option value="">Todas las etiquetas</option>
+            {/* Una etiqueta de la URL que ya no usa ningún mazo sigue apareciendo, para poder quitarla. */}
+            {[...new Set([...tags, filters.tag].filter(Boolean))].map((tag) => (
+              <option key={tag} value={tag}>
+                #{tag}
+              </option>
+            ))}
+          </select>
+        )}
 
         <select
           aria-label="Ordenar"

@@ -1,4 +1,4 @@
-import type { DeckFormat, DeckVisibility } from "../types/deck";
+import type { DeckBoard, DeckFormat, DeckVisibility } from "../types/deck";
 
 /** Formatos en el orden en que se ofrecen, con Commander primero. */
 export const DECK_FORMATS = [
@@ -35,4 +35,19 @@ export const DECK_VISIBILITY_LABELS: Record<DeckVisibility, string> = {
   private: "Privado",
   unlisted: "Oculto (solo con enlace)",
   public: "Público",
+};
+
+/** Zonas en el orden en que se enseñan: el comandante siempre arriba. */
+export const DECK_BOARDS = [
+  "commander",
+  "main",
+  "sideboard",
+  "maybeboard",
+] as const satisfies readonly DeckBoard[];
+
+export const DECK_BOARD_LABELS: Record<DeckBoard, string> = {
+  commander: "Comandante",
+  main: "Mazo",
+  sideboard: "Banquillo",
+  maybeboard: "Quizás",
 };

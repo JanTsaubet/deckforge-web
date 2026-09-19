@@ -2,8 +2,17 @@ import Link from "next/link";
 import { routes } from "@/config/routes";
 import { formatRelativeDate } from "@/lib/utils/format-date";
 import { DECK_FORMAT_LABELS, DECK_VISIBILITY_LABELS } from "../constants/deck-formats";
-import type { DeckSummary } from "../types/deck";
+import type { LibraryFilters } from "../lib/library-filters";
+import type { DeckFolder, DeckSummary } from "../types/deck";
 import { DeckActions } from "./deck-actions";
+import { DeckTags } from "./deck-tags";
+
+interface DeckListTableProps {
+  decks: DeckSummary[];
+  folders: DeckFolder[];
+  knownTags: string[];
+  filters: LibraryFilters;
+}
 
 const CELL = "px-4 py-2";
 
@@ -12,7 +21,7 @@ const CELL = "px-4 py-2";
  * anuncien cada dato con su columna. Es un Server Component: las fechas relativas se calculan
  * una sola vez en el servidor y no hay desajustes al hidratar.
  */
-export function DeckListTable({ decks }: { decks: DeckSummary[] }) {
+export function DeckListTable({ decks, folders, knownTags, filters }: DeckListTableProps) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full text-sm">
@@ -48,6 +57,7 @@ export function DeckListTable({ decks }: { decks: DeckSummary[] }) {
                 >
                   {deck.name}
                 </Link>
+                <DeckTags tags={deck.tags} filters={filters} className="mt-1" />
               </td>
               <td className={`${CELL} text-muted`}>{DECK_FORMAT_LABELS[deck.format]}</td>
               <td className={`${CELL} text-right text-muted tabular-nums`}>{deck.cardCount}</td>
@@ -57,7 +67,7 @@ export function DeckListTable({ decks }: { decks: DeckSummary[] }) {
               </td>
               <td className="px-2 py-1">
                 <div className="flex justify-end">
-                  <DeckActions deckId={deck.id} deckName={deck.name} />
+                  <DeckActions deck={deck} folders={folders} knownTags={knownTags} />
                 </div>
               </td>
             </tr>

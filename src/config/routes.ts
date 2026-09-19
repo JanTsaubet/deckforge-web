@@ -9,6 +9,7 @@ export const routes = {
   login: "/login",
   register: "/register",
   decks: "/decks",
+  deckImport: "/decks/import",
   search: "/search",
   settings: "/settings",
   deck: (deckId: string) => `/decks/${encodeURIComponent(deckId)}` as Route,
