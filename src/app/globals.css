@@ -5,6 +5,14 @@
  * Cada variable --color-* genera utilidades: bg-surface, text-muted, border-border…
  * Tema oscuro por defecto: el arte de las cartas destaca más sobre fondos oscuros.
  */
+/*
+ * Dispositivos con ratón (o similar). Lo que solo aparece "al pasar por encima" se escribe
+ * entero dentro de esta variante, estado oculto y visible (`can-hover:opacity-0
+ * can-hover:group-hover:opacity-100`): en pantallas táctiles, donde no hay "pasar por
+ * encima", nada de eso se aplica y los controles quedan siempre a la vista.
+ */
+@custom-variant can-hover (@media (hover: hover));
+
 @theme {
   --color-background: oklch(0.15 0.012 275);
   --color-surface: oklch(0.19 0.014 275);

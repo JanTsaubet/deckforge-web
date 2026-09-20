@@ -28,7 +28,7 @@ const ITEM =
   "relative flex h-9 items-center gap-2 rounded-lg px-3 text-sm whitespace-nowrap transition-colors duration-200";
 
 const ICON_BUTTON =
-  "grid size-7 place-items-center rounded-md text-muted transition-[opacity,color] duration-200 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:hover)]:opacity-0";
+  "grid size-7 place-items-center rounded-md text-muted transition-[opacity,color] duration-200 can-hover:opacity-0 can-hover:group-hover:opacity-100 can-hover:focus-visible:opacity-100";
 
 /**
  * Carpetas de la biblioteca. En escritorio es una columna lateral; en móvil, una fila que se

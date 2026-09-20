@@ -84,7 +84,7 @@ export function DeckLibrary({ decks, folders, filters }: DeckLibraryProps) {
             filters={filters}
           />
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {visible.map((deck) => (
               <li key={deck.id}>
                 <DeckCard deck={deck} folders={folders} knownTags={knownTags} filters={filters} />

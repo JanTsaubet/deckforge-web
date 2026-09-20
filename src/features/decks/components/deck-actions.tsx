@@ -24,7 +24,7 @@ const ACTION_BUTTON =
   "grid size-8 place-items-center rounded-lg bg-background/80 text-muted backdrop-blur transition-[opacity,color] duration-200 disabled:opacity-50";
 
 const HOVER_REVEAL =
-  "group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:hover)]:opacity-0";
+  "can-hover:opacity-0 can-hover:group-hover:opacity-100 can-hover:focus-visible:opacity-100";
 
 /** Organizar, duplicar y borrar un mazo. Compartido por la tarjeta y por la vista de lista. */
 export function DeckActions({ deck, folders, knownTags, revealOnHover = false }: DeckActionsProps) {
