@@ -1,14 +1,7 @@
 import { createStore } from "zustand/vanilla";
 import type { EntryChange } from "@/features/decks/services/deck-repository";
-import type { CatalogCard, DeckBoard } from "@/features/decks/types/deck";
-import {
-  addCopies,
-  diffEntries,
-  entryKey,
-  moveCard,
-  setQuantity,
-  type EditorEntry,
-} from "../lib/editor-entries";
+import type { CatalogCard, DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
+import { addCopies, diffEntries, entryKey, moveCard, setQuantity } from "../lib/editor-entries";
 
 /** Pasos que se pueden deshacer. Suficientes para cualquier sesión, sin crecer sin límite. */
 const HISTORY_LIMIT = 100;
@@ -22,9 +15,9 @@ const HISTORY_LIMIT = 100;
 export type SaveStatus = "saved" | "pending" | "saving" | "error";
 
 export interface DeckEditorState {
-  entries: EditorEntry[];
-  past: EditorEntry[][];
-  future: EditorEntry[][];
+  entries: DeckCardLine[];
+  past: DeckCardLine[][];
+  future: DeckCardLine[][];
   /**
    * Cambios sin guardar, uno por carta y zona: si una carta cambia tres veces antes de
    * guardarse, se envía solo su cantidad final.
@@ -59,10 +52,10 @@ export type DeckEditorStore = DeckEditorState & DeckEditorActions;
  * después en segundo plano (ver `useAutosave`). Deshacer y rehacer son cambios como
  * cualquier otro: vuelven a un estado anterior y guardan la diferencia.
  */
-export function createDeckEditorStore(initialEntries: EditorEntry[]) {
+export function createDeckEditorStore(initialEntries: DeckCardLine[]) {
   return createStore<DeckEditorStore>()((set, get) => {
     /** Aplica un estado nuevo: lo guarda en el historial y apunta qué hay que enviar. */
-    function commit(next: EditorEntry[], history: Pick<DeckEditorState, "past" | "future">) {
+    function commit(next: DeckCardLine[], history: Pick<DeckEditorState, "past" | "future">) {
       const { entries, pending } = get();
       if (next === entries) return;
       const changes = diffEntries(entries, next);
@@ -79,7 +72,7 @@ export function createDeckEditorStore(initialEntries: EditorEntry[]) {
       });
     }
 
-    function edit(update: (entries: EditorEntry[]) => EditorEntry[]) {
+    function edit(update: (entries: DeckCardLine[]) => DeckCardLine[]) {
       const { entries, past } = get();
       commit(update(entries), { past: [...past, entries].slice(-HISTORY_LIMIT), future: [] });
     }

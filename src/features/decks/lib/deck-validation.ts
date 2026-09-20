@@ -1,8 +1,7 @@
 import type { ManaColor } from "@/features/cards/types/card";
-import { DECK_FORMAT_LABELS } from "@/features/decks/constants/deck-formats";
-import type { CatalogCard, DeckFormat } from "@/features/decks/types/deck";
+import { DECK_FORMAT_LABELS } from "../constants/deck-formats";
+import type { CatalogCard, DeckCardLine, DeckFormat } from "../types/deck";
 import { isBasicLand } from "./card-category";
-import type { EditorEntry } from "./editor-entries";
 
 export type IssueLevel = "error" | "warning" | "info";
 
@@ -87,7 +86,7 @@ function allowsPartner(card: CatalogCard): boolean {
  *  - **warning:** todavía no se puede jugar (le faltan cartas, no tiene comandante).
  *  - **info:** datos útiles que no son un problema (Game Changers para el bracket).
  */
-export function validateDeck(entries: EditorEntry[], format: DeckFormat): DeckIssue[] {
+export function validateDeck(entries: DeckCardLine[], format: DeckFormat): DeckIssue[] {
   const rules = RULES[format];
   const issues: DeckIssue[] = [];
   const playable = entries.filter((entry) => entry.board === "commander" || entry.board === "main");

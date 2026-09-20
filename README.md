@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (ya funcional: añadir, mover, guardado automático, estadísticas y validación). Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (ya funcional: añadir, mover, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -125,7 +125,7 @@ deckforge-web/
 │   ├── config/                  # env.ts (Zod) · routes.ts · site.ts
 │   ├── features/                # Módulos de dominio (vertical slices)
 │   │   ├── cards/               # types · services (contrato) · api (adaptador Scryfall)
-│   │   ├── decks/               # types · services (contrato) · components · constants
+│   │   ├── decks/               # types · services (contrato) · lib (reglas del mazo) · components
 │   │   ├── deck-editor/         # store (Zustand) · components
 │   │   └── search/              # types · components
 │   ├── lib/                     # Utilidades genéricas: http-client, cn
@@ -290,7 +290,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Selector de comandante: la corona fija la identidad de color y filtra el buscador
 - [ ] **Quick adds v1:** cartas casi obligatorias de esa identidad de color, agrupadas por función
       (rampa, robo, remoción, tierras), añadibles de una en una o por paquetes completos
-- [ ] Vista pública del mazo (lectura), a partir de los componentes del editor
+- [x] Vista pública del mazo (lectura): mismas cartas y análisis que el editor, en texto o en imágenes,
+      abierta a quien tenga el enlace y con metadatos para compartirla
 - [ ] Historial de versiones con _diffs_
 
 ### Fase 4 · Pulido de la experiencia

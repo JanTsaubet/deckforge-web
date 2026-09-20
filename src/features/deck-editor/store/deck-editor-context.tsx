@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useStore } from "zustand";
-import type { EditorEntry } from "../lib/editor-entries";
+import type { DeckCardLine } from "@/features/decks/types/deck";
 import {
   createDeckEditorStore,
   type DeckEditorStore,
@@ -19,7 +19,7 @@ export function DeckEditorProvider({
   initialEntries,
   children,
 }: {
-  initialEntries: EditorEntry[];
+  initialEntries: DeckCardLine[];
   children: ReactNode;
 }) {
   const [store] = useState(() => createDeckEditorStore(initialEntries));

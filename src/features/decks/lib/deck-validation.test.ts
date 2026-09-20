@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { CatalogCard } from "@/features/decks/types/deck";
 import { catalogCard } from "@/test/fixtures/catalog-card";
+import type { CatalogCard, DeckCardLine } from "../types/deck";
 import { validateDeck, type DeckIssue } from "./deck-validation";
-import type { EditorEntry } from "./editor-entries";
 
 const krenko = catalogCard({
   id: "krenko",
@@ -24,14 +23,18 @@ const bolt = catalogCard({
 });
 const elves = catalogCard({ id: "elves", name: "Llanowar Elves", colorIdentity: ["G"] });
 
-const e = (card: CatalogCard, quantity = 1, board: EditorEntry["board"] = "main"): EditorEntry => ({
+const e = (
+  card: CatalogCard,
+  quantity = 1,
+  board: DeckCardLine["board"] = "main",
+): DeckCardLine => ({
   card,
   board,
   quantity,
 });
 
 /** Un mazo de Commander válido de Krenko: comandante + 99 montañas. */
-const legalCommanderDeck = (): EditorEntry[] => [e(krenko, 1, "commander"), e(mountain, 99)];
+const legalCommanderDeck = (): DeckCardLine[] => [e(krenko, 1, "commander"), e(mountain, 99)];
 
 const messages = (issues: DeckIssue[]) => issues.map((issue) => `${issue.level}: ${issue.message}`);
 const levels = (issues: DeckIssue[]) => issues.map((issue) => issue.level);

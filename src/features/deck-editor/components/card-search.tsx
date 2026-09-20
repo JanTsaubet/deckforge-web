@@ -7,10 +7,10 @@ import { ColorIdentity } from "@/features/cards/components/color-identity";
 import { ManaCost } from "@/features/cards/components/mana-cost";
 import type { ManaColor } from "@/features/cards/types/card";
 import { DECK_BOARD_LABELS } from "@/features/decks/constants/deck-formats";
+import { canBeCommander } from "@/features/decks/lib/deck-validation";
 import type { CatalogCard, DeckBoard } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { MIN_QUERY_LENGTH, useCatalogSearch } from "../hooks/use-catalog-search";
-import { canBeCommander } from "../lib/deck-validation";
 import { parseQuickAdd } from "../lib/quick-add";
 import { useDeckEditor } from "../store/deck-editor-context";
 

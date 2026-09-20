@@ -1,7 +1,6 @@
 import type { ManaColor } from "@/features/cards/types/card";
-import type { DeckBoard } from "@/features/decks/types/deck";
+import type { DeckBoard, DeckCardLine } from "../types/deck";
 import { cardCategory, CARD_CATEGORIES, type CardCategory } from "./card-category";
-import type { EditorEntry } from "./editor-entries";
 
 /** Barras de la curva de maná: 0, 1, 2… hasta "7 o más". */
 export const CURVE_BUCKETS = 8;
@@ -30,7 +29,7 @@ const COLORS: ManaColor[] = ["W", "U", "B", "R", "G"];
  * Estadísticas de un mazo para el panel de análisis. Solo cuentan el comandante y el mazo
  * principal: el banquillo y las "quizás" no se juegan.
  */
-export function computeDeckStats(entries: EditorEntry[]): DeckStats {
+export function computeDeckStats(entries: DeckCardLine[]): DeckStats {
   const byBoard: Record<DeckBoard, number> = { commander: 0, main: 0, sideboard: 0, maybeboard: 0 };
   const curve = Array.from({ length: CURVE_BUCKETS }, () => 0);
   const colorPips: Record<ManaColor, number> = { W: 0, U: 0, B: 0, R: 0, G: 0 };

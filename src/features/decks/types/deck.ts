@@ -47,6 +47,17 @@ export interface DeckEntry {
   card?: CatalogCard;
 }
 
+/**
+ * Una línea del mazo con los datos de su carta ya resueltos: cuántas copias, en qué zona y
+ * de qué carta. Es lo que manejan el editor y la vista pública, que no pueden enseñar (ni
+ * contar) una carta de la que no saben nada.
+ */
+export interface DeckCardLine {
+  card: CatalogCard;
+  board: DeckBoard;
+  quantity: number;
+}
+
 export interface Deck {
   id: string;
   ownerUsername: string;

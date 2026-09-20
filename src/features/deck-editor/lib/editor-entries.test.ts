@@ -1,23 +1,17 @@
 import { describe, expect, it } from "vitest";
+import type { DeckCardLine } from "@/features/decks/types/deck";
 import { catalogCard } from "@/test/fixtures/catalog-card";
-import {
-  addCopies,
-  diffEntries,
-  moveCard,
-  setQuantity,
-  toEditorEntries,
-  type EditorEntry,
-} from "./editor-entries";
+import { addCopies, diffEntries, moveCard, setQuantity } from "./editor-entries";
 
 const bolt = catalogCard({ id: "bolt", name: "Lightning Bolt" });
 const krenko = catalogCard({ id: "krenko", name: "Krenko, Mob Boss" });
 
-const summary = (entries: EditorEntry[]) =>
+const summary = (entries: DeckCardLine[]) =>
   entries.map((entry) => `${entry.board}:${entry.card.id}×${entry.quantity}`);
 
 describe("setQuantity / addCopies", () => {
   it("añade, suma, resta y quita al llegar a 0", () => {
-    let entries: EditorEntry[] = [];
+    let entries: DeckCardLine[] = [];
     entries = addCopies(entries, bolt, "main", 4);
     entries = addCopies(entries, bolt, "main", -1);
     expect(summary(entries)).toEqual(["main:bolt×3"]);
@@ -32,7 +26,7 @@ describe("setQuantity / addCopies", () => {
   });
 
   it("no modifica la lista original (el historial de deshacer depende de ello)", () => {
-    const original: EditorEntry[] = [{ card: bolt, board: "main", quantity: 1 }];
+    const original: DeckCardLine[] = [{ card: bolt, board: "main", quantity: 1 }];
 
     addCopies(original, bolt, "main", 1);
 
@@ -42,7 +36,7 @@ describe("setQuantity / addCopies", () => {
 
 describe("moveCard", () => {
   it("mueve todas las copias a otra zona, sumándolas a las que ya hubiera", () => {
-    const entries: EditorEntry[] = [
+    const entries: DeckCardLine[] = [
       { card: bolt, board: "main", quantity: 3 },
       { card: bolt, board: "sideboard", quantity: 1 },
     ];
@@ -51,7 +45,7 @@ describe("moveCard", () => {
   });
 
   it("al hueco de comandante solo va una copia", () => {
-    const entries: EditorEntry[] = [{ card: krenko, board: "main", quantity: 2 }];
+    const entries: DeckCardLine[] = [{ card: krenko, board: "main", quantity: 2 }];
 
     expect(summary(moveCard(entries, krenko, "main", "commander"))).toEqual([
       "main:krenko×1",
@@ -62,7 +56,7 @@ describe("moveCard", () => {
 
 describe("diffEntries", () => {
   it("da la cantidad final de lo que cambia, y 0 de lo que desaparece", () => {
-    const before: EditorEntry[] = [
+    const before: DeckCardLine[] = [
       { card: bolt, board: "main", quantity: 4 },
       { card: krenko, board: "main", quantity: 1 },
     ];
@@ -76,19 +70,8 @@ describe("diffEntries", () => {
   });
 
   it("sin cambios, no hay nada que enviar", () => {
-    const entries: EditorEntry[] = [{ card: bolt, board: "main", quantity: 4 }];
+    const entries: DeckCardLine[] = [{ card: bolt, board: "main", quantity: 4 }];
 
     expect(diffEntries(entries, [...entries])).toEqual([]);
-  });
-});
-
-describe("toEditorEntries", () => {
-  it("deja fuera las cartas que el catálogo aún no conoce", () => {
-    const entries = toEditorEntries([
-      { cardId: "bolt", board: "main", quantity: 4, tags: [], card: bolt },
-      { cardId: "desconocida", board: "main", quantity: 1, tags: [] },
-    ]);
-
-    expect(summary(entries)).toEqual(["main:bolt×4"]);
   });
 });

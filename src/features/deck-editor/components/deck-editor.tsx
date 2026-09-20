@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sortColors } from "@/features/cards/lib/colors";
 import type { ManaColor } from "@/features/cards/types/card";
+import { computeDeckStats } from "@/features/decks/lib/deck-stats";
+import { validateDeck } from "@/features/decks/lib/deck-validation";
 import type { EntryChange } from "@/features/decks/services/deck-repository";
-import type { DeckFormat } from "@/features/decks/types/deck";
+import type { DeckCardLine, DeckFormat } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { saveEntriesAction } from "../actions/save-entries-action";
 import { useAutosave } from "../hooks/use-autosave";
-import { computeDeckStats } from "../lib/deck-stats";
-import { validateDeck } from "../lib/deck-validation";
-import type { EditorEntry } from "../lib/editor-entries";
 import { DeckEditorProvider, useDeckEditor } from "../store/deck-editor-context";
 import { CardSearch } from "./card-search";
 import { DeckAnalysis } from "./deck-analysis";
@@ -21,7 +20,7 @@ interface DeckEditorProps {
   deckId: string;
   name: string;
   format: DeckFormat;
-  initialEntries: EditorEntry[];
+  initialEntries: DeckCardLine[];
 }
 
 /** Formatos con comandante (y por tanto con zona de comandante e identidad de color). */

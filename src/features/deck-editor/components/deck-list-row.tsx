@@ -4,14 +4,13 @@ import { Crown, Minus, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { ManaCost } from "@/features/cards/components/mana-cost";
 import { DECK_BOARD_LABELS, DECK_BOARDS } from "@/features/decks/constants/deck-formats";
-import type { DeckBoard } from "@/features/decks/types/deck";
+import { canBeCommander } from "@/features/decks/lib/deck-validation";
+import type { DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
-import { canBeCommander } from "../lib/deck-validation";
-import type { EditorEntry } from "../lib/editor-entries";
 import { useDeckEditor } from "../store/deck-editor-context";
 
 interface DeckListRowProps {
-  entry: EditorEntry;
+  entry: DeckCardLine;
   /** El formato tiene comandante: se ofrece "Hacer comandante" en las cartas que pueden serlo. */
   hasCommander: boolean;
   /** Resaltada porque tiene un problema de legalidad. */

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { catalogCard } from "@/test/fixtures/catalog-card";
+import type { DeckCardLine } from "../types/deck";
 import { cardCategory, isBasicLand } from "./card-category";
 import { computeDeckStats, countPips } from "./deck-stats";
-import type { EditorEntry } from "./editor-entries";
 
 const entry = (
   overrides: Parameters<typeof catalogCard>[0],
   quantity = 1,
-  board: EditorEntry["board"] = "main",
-): EditorEntry => ({
+  board: DeckCardLine["board"] = "main",
+): DeckCardLine => ({
   card: catalogCard(overrides),
   board,
   quantity,
@@ -48,7 +48,7 @@ describe("countPips", () => {
 });
 
 describe("computeDeckStats", () => {
-  const entries: EditorEntry[] = [
+  const entries: DeckCardLine[] = [
     entry(
       {
         id: "k",

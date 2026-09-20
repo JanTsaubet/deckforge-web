@@ -1,12 +1,5 @@
 import type { EntryChange } from "@/features/decks/services/deck-repository";
-import type { CatalogCard, DeckBoard, DeckEntry } from "@/features/decks/types/deck";
-
-/** Una línea del mazo en el editor: siempre con los datos de su carta. */
-export interface EditorEntry {
-  card: CatalogCard;
-  board: DeckBoard;
-  quantity: number;
-}
+import type { CatalogCard, DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
 
 /** Máximo de copias de una carta que admite la API. */
 export const MAX_COPIES = 999;
@@ -16,22 +9,13 @@ export function entryKey(board: DeckBoard, cardId: string): string {
   return `${board}:${cardId}`;
 }
 
-/**
- * Las entradas del mazo tal como llegan de la API, listas para el editor. Las cartas que el
- * catálogo aún no conoce se quedan fuera (no se pueden mostrar ni editar), pero no se tocan:
- * el editor solo envía cambios de lo que el usuario modifica.
- */
-export function toEditorEntries(entries: DeckEntry[]): EditorEntry[] {
-  return entries.flatMap(({ card, board, quantity }) => (card ? [{ card, board, quantity }] : []));
-}
-
 /** Fija la cantidad de una carta en una zona: 0 la quita. No modifica la lista recibida. */
 export function setQuantity(
-  entries: EditorEntry[],
+  entries: DeckCardLine[],
   card: CatalogCard,
   board: DeckBoard,
   quantity: number,
-): EditorEntry[] {
+): DeckCardLine[] {
   const clamped = Math.max(0, Math.min(MAX_COPIES, Math.trunc(quantity)));
   const key = entryKey(board, card.id);
   const index = entries.findIndex((entry) => entryKey(entry.board, entry.card.id) === key);
@@ -46,11 +30,11 @@ export function setQuantity(
 
 /** Suma (o resta, con `delta` negativo) copias de una carta en una zona. */
 export function addCopies(
-  entries: EditorEntry[],
+  entries: DeckCardLine[],
   card: CatalogCard,
   board: DeckBoard,
   delta: number,
-): EditorEntry[] {
+): DeckCardLine[] {
   return setQuantity(entries, card, board, quantityOf(entries, card.id, board) + delta);
 }
 
@@ -59,11 +43,11 @@ export function addCopies(
  * se suman). En el hueco de comandante no caben copias: se mueve una y el resto se queda.
  */
 export function moveCard(
-  entries: EditorEntry[],
+  entries: DeckCardLine[],
   card: CatalogCard,
   from: DeckBoard,
   to: DeckBoard,
-): EditorEntry[] {
+): DeckCardLine[] {
   if (from === to) return entries;
   const available = quantityOf(entries, card.id, from);
   if (available === 0) return entries;
@@ -73,7 +57,7 @@ export function moveCard(
   return setQuantity(withoutSource, card, to, quantityOf(entries, card.id, to) + moved);
 }
 
-export function quantityOf(entries: EditorEntry[], cardId: string, board: DeckBoard): number {
+export function quantityOf(entries: DeckCardLine[], cardId: string, board: DeckBoard): number {
   return entries.find((entry) => entry.card.id === cardId && entry.board === board)?.quantity ?? 0;
 }
 
@@ -82,7 +66,7 @@ export function quantityOf(entries: EditorEntry[], cardId: string, board: DeckBo
  * línea que ha cambiado (0 si ha desaparecido). Sirve igual para una edición que para un
  * deshacer, que no es más que volver a un estado anterior.
  */
-export function diffEntries(before: EditorEntry[], after: EditorEntry[]): EntryChange[] {
+export function diffEntries(before: DeckCardLine[], after: DeckCardLine[]): EntryChange[] {
   const previous = new Map(before.map((entry) => [entryKey(entry.board, entry.card.id), entry]));
   const changes: EntryChange[] = [];
 
