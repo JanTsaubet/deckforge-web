@@ -1,5 +1,6 @@
 import type { Route } from "next";
 import { routes } from "@/config/routes";
+import { normalizeText } from "@/lib/utils/text";
 import { DECK_FORMATS } from "../constants/deck-formats";
 import { MAX_TAG_LENGTH, normalizeTag } from "../constants/deck-limits";
 import type { DeckFormat, DeckSummary } from "../types/deck";
@@ -79,25 +80,16 @@ export function libraryHref(filters: LibraryFilters): Route {
   return (params ? `${routes.decks}?${params}` : routes.decks) as Route;
 }
 
-/** Sin mayúsculas ni tildes: "atraxa" encuentra "Átraxa" y "Atraxa". */
-function normalize(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .trim();
-}
-
 const nameCollator = new Intl.Collator("es", { sensitivity: "base", numeric: true });
 
 export function applyLibraryFilters(decks: DeckSummary[], filters: LibraryFilters): DeckSummary[] {
-  const query = normalize(filters.query);
+  const query = normalizeText(filters.query);
 
   const visible = decks.filter(
     (deck) =>
       matchesFolder(deck, filters.folder) &&
       (!filters.tag || deck.tags.includes(filters.tag)) &&
-      (!query || normalize(deck.name).includes(query)) &&
+      (!query || normalizeText(deck.name).includes(query)) &&
       (!filters.format || deck.format === filters.format),
   );
 

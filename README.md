@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -91,7 +91,7 @@ es la especificación **OpenAPI** que publica la API; el frontend genera sus tip
 | Animaciones     | Motion (antes Framer Motion)                  |
 | Estado servidor | TanStack Query 5                              |
 | Estado cliente  | Zustand 5                                     |
-| Interacción     | dnd-kit (arrastrar cartas entre zonas)        |
+| Interacción     | dnd-kit (arrastrar) · cmdk (paleta Ctrl+K)    |
 | Validación      | Zod 4                                         |
 | Calidad         | ESLint 9 + Prettier (plugin de Tailwind)      |
 
@@ -280,7 +280,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Layout de tres columnas (añadir · mazo · análisis); pestañas en móvil
 - [ ] Columnas redimensionables
 - [x] Añadir cartas con autocompletado, cantidades rápidas (`4 Lightning Bolt`) y teclado (flechas, Enter, `/`)
-- [ ] Paleta de comandos (`cmdk`)
+- [x] Paleta de comandos (`cmdk`, Ctrl+K): añadir cartas por nombre y las acciones de la pantalla,
+      sin recordar dónde está cada botón
 - [x] Zonas con _drag & drop_ (dnd-kit): al arrastrar aparecen las zonas vacías, solo se iluminan las que
       admiten esa carta y con el teclado las flechas la llevan de una zona a otra
 - [x] Agrupar por tipo, con animaciones al añadir y quitar

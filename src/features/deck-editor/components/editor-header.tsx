@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, CloudOff, Eye, Loader2, Redo2, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, CloudOff, Command, Eye, Loader2, Redo2, Undo2 } from "lucide-react";
 import Link from "next/link";
 import { buttonStyles } from "@/components/ui/button";
 import { routes } from "@/config/routes";
@@ -10,19 +10,22 @@ import { DECK_FORMAT_LABELS } from "@/features/decks/constants/deck-formats";
 import type { DeckFormat } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { useDeckEditor } from "../store/deck-editor-context";
+import { CommandPalette } from "./command-palette";
 
 interface EditorHeaderProps {
   deckId: string;
   name: string;
   format: DeckFormat;
   identity?: ManaColor[];
+  /** La paleta lo usa para su acción "buscar cartas". */
+  onFocusSearch: () => void;
 }
 
 const ICON_BUTTON =
   "grid size-9 place-items-center rounded-lg text-muted transition-colors duration-150 hover:bg-surface-raised hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
 
 /** Cabecera del editor: el mazo, el estado del guardado y deshacer/rehacer. */
-export function EditorHeader({ deckId, name, format, identity }: EditorHeaderProps) {
+export function EditorHeader({ deckId, name, format, identity, onFocusSearch }: EditorHeaderProps) {
   const canUndo = useDeckEditor((state) => state.past.length > 0);
   const canRedo = useDeckEditor((state) => state.future.length > 0);
   const undo = useDeckEditor((state) => state.undo);
@@ -42,6 +45,22 @@ export function EditorHeader({ deckId, name, format, identity }: EditorHeaderPro
       </div>
 
       <SaveIndicator />
+
+      <CommandPalette
+        deckId={deckId}
+        onFocusSearch={onFocusSearch}
+        trigger={(open) => (
+          <button
+            type="button"
+            onClick={open}
+            aria-label="Abrir la paleta de comandos"
+            title="Paleta de comandos (Ctrl+K)"
+            className={ICON_BUTTON}
+          >
+            <Command className="size-4" aria-hidden />
+          </button>
+        )}
+      />
 
       <div className="flex items-center gap-1">
         <button

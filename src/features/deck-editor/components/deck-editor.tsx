@@ -74,8 +74,15 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
     [issues],
   );
 
+  /** Lleva el foco al buscador, abriendo su pestaña si estamos en móvil. */
+  const focusSearch = useCallback(() => {
+    setTab("add");
+    searchRef.current?.focus();
+  }, []);
+
   // Atajos: Ctrl+Z / Ctrl+Shift+Z (o Ctrl+Y) y "/" para ir al buscador. Dentro de un campo
-  // de texto no se tocan: ahí Ctrl+Z deshace lo escrito, como siempre.
+  // de texto no se tocan: ahí Ctrl+Z deshace lo escrito, como siempre. (Ctrl+K, que abre la
+  // paleta, sí funciona desde cualquier sitio: lo escucha ella misma.)
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
@@ -90,20 +97,25 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
         redo();
       } else if (event.key === "/") {
         event.preventDefault();
-        setTab("add");
-        searchRef.current?.focus();
+        focusSearch();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, focusSearch]);
 
   const panel = (id: MobileTab) => cn(tab !== id && "hidden", "lg:block");
 
   return (
     <DeckDndContext>
       <div className="flex flex-col gap-5">
-        <EditorHeader deckId={deckId} name={name} format={format} identity={identity} />
+        <EditorHeader
+          deckId={deckId}
+          name={name}
+          format={format}
+          identity={identity}
+          onFocusSearch={focusSearch}
+        />
 
         <div
           role="tablist"
