@@ -13,6 +13,7 @@ import { useAutosave } from "../hooks/use-autosave";
 import { DeckEditorProvider, useDeckEditor } from "../store/deck-editor-context";
 import { CardSearch } from "./card-search";
 import { DeckAnalysis } from "./deck-analysis";
+import { DeckDndContext } from "./deck-dnd-context";
 import { DeckList } from "./deck-list";
 import { EditorHeader } from "./editor-header";
 
@@ -100,64 +101,66 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
   const panel = (id: MobileTab) => cn(tab !== id && "hidden", "lg:block");
 
   return (
-    <div className="flex flex-col gap-5">
-      <EditorHeader deckId={deckId} name={name} format={format} identity={identity} />
+    <DeckDndContext>
+      <div className="flex flex-col gap-5">
+        <EditorHeader deckId={deckId} name={name} format={format} identity={identity} />
 
-      <div
-        role="tablist"
-        aria-label="Secciones del editor"
-        className="flex rounded-lg border border-border p-0.5 lg:hidden"
-      >
-        {MOBILE_TABS.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={tab === id}
-            onClick={() => setTab(id)}
+        <div
+          role="tablist"
+          aria-label="Secciones del editor"
+          className="flex rounded-lg border border-border p-0.5 lg:hidden"
+        >
+          {MOBILE_TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className={cn(
+                "flex-1 rounded-md py-1.5 text-sm transition-colors duration-150",
+                tab === id ? "bg-surface-raised text-foreground" : "text-muted",
+              )}
+            >
+              {label}
+              {id === "deck" && (
+                <span className="ml-1 text-xs text-muted tabular-nums">{stats.playable}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)_280px] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
+          <aside
+            aria-label="Añadir cartas"
             className={cn(
-              "flex-1 rounded-md py-1.5 text-sm transition-colors duration-150",
-              tab === id ? "bg-surface-raised text-foreground" : "text-muted",
+              panel("add"),
+              "lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:overflow-y-auto",
             )}
           >
-            {label}
-            {id === "deck" && (
-              <span className="ml-1 text-xs text-muted tabular-nums">{stats.playable}</span>
+            <CardSearch
+              inputRef={searchRef}
+              hasCommander={hasCommander}
+              commanderIdentity={identity}
+              commanderSlotFree={commanders.length < 2}
+            />
+          </aside>
+
+          <section aria-label="Lista del mazo" className={panel("deck")}>
+            <DeckList hasCommander={hasCommander} flaggedCardIds={flaggedCardIds} />
+          </section>
+
+          <aside
+            aria-label="Análisis"
+            className={cn(
+              panel("analysis"),
+              "lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:overflow-y-auto",
             )}
-          </button>
-        ))}
+          >
+            <DeckAnalysis stats={stats} issues={issues} />
+          </aside>
+        </div>
       </div>
-
-      <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)_280px] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
-        <aside
-          aria-label="Añadir cartas"
-          className={cn(
-            panel("add"),
-            "lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:overflow-y-auto",
-          )}
-        >
-          <CardSearch
-            inputRef={searchRef}
-            hasCommander={hasCommander}
-            commanderIdentity={identity}
-            commanderSlotFree={commanders.length < 2}
-          />
-        </aside>
-
-        <section aria-label="Lista del mazo" className={panel("deck")}>
-          <DeckList hasCommander={hasCommander} flaggedCardIds={flaggedCardIds} />
-        </section>
-
-        <aside
-          aria-label="Análisis"
-          className={cn(
-            panel("analysis"),
-            "lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:overflow-y-auto",
-          )}
-        >
-          <DeckAnalysis stats={stats} issues={issues} />
-        </aside>
-      </div>
-    </div>
+    </DeckDndContext>
   );
 }

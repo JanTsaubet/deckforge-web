@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (ya funcional: añadir, mover, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -91,6 +91,7 @@ es la especificación **OpenAPI** que publica la API; el frontend genera sus tip
 | Animaciones     | Motion (antes Framer Motion)                  |
 | Estado servidor | TanStack Query 5                              |
 | Estado cliente  | Zustand 5                                     |
+| Interacción     | dnd-kit (arrastrar cartas entre zonas)        |
 | Validación      | Zod 4                                         |
 | Calidad         | ESLint 9 + Prettier (plugin de Tailwind)      |
 
@@ -126,7 +127,7 @@ deckforge-web/
 │   ├── features/                # Módulos de dominio (vertical slices)
 │   │   ├── cards/               # types · services (contrato) · api (adaptador Scryfall)
 │   │   ├── decks/               # types · services (contrato) · lib (reglas del mazo) · components
-│   │   ├── deck-editor/         # store (Zustand) · components
+│   │   ├── deck-editor/         # store (Zustand) · lib · hooks · components
 │   │   └── search/              # types · components
 │   ├── lib/                     # Utilidades genéricas: http-client, cn
 │   ├── providers/               # AppProviders (TanStack Query + MotionConfig)
@@ -280,7 +281,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [ ] Columnas redimensionables
 - [x] Añadir cartas con autocompletado, cantidades rápidas (`4 Lightning Bolt`) y teclado (flechas, Enter, `/`)
 - [ ] Paleta de comandos (`cmdk`)
-- [ ] Zonas con _drag & drop_ (dnd-kit); de momento, mover con el menú de cada carta
+- [x] Zonas con _drag & drop_ (dnd-kit): al arrastrar aparecen las zonas vacías, solo se iluminan las que
+      admiten esa carta y con el teclado las flechas la llevan de una zona a otra
 - [x] Agrupar por tipo, con animaciones al añadir y quitar
 - [ ] Agrupar por coste, color o etiqueta; vistas de imágenes y pilas
 - [x] Guardado automático optimista (agrupa cambios, reintenta si falla, avisa antes de cerrar con cambios sin guardar) y deshacer/rehacer

@@ -1,5 +1,6 @@
 "use client";
 
+import { useDraggable } from "@dnd-kit/core";
 import { Crown, Minus, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { ManaCost } from "@/features/cards/components/mana-cost";
@@ -7,6 +8,7 @@ import { DECK_BOARD_LABELS, DECK_BOARDS } from "@/features/decks/constants/deck-
 import { canBeCommander } from "@/features/decks/lib/deck-validation";
 import type { DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
+import { entryKey } from "../lib/editor-entries";
 import { useDeckEditor } from "../store/deck-editor-context";
 
 interface DeckListRowProps {
@@ -23,12 +25,20 @@ const ICON_BUTTON =
 /**
  * Una línea del mazo: cantidad, nombre, coste y acciones. Las acciones aparecen al pasar el
  * ratón o al llegar con el teclado; en pantallas táctiles están siempre a la vista.
+ *
+ * La cantidad y el nombre son el asa para arrastrar la carta a otra zona. Los botones quedan
+ * fuera de esa zona para que pulsarlos no sea nunca el principio de un arrastre.
  */
 export function DeckListRow({ entry, hasCommander, flagged }: DeckListRowProps) {
   const { card, board, quantity } = entry;
   const addCopies = useDeckEditor((state) => state.addCopies);
   const moveCard = useDeckEditor((state) => state.moveCard);
   const setPreviewCard = useDeckEditor((state) => state.setPreviewCard);
+
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: entryKey(board, card.id),
+    data: { card, board, quantity },
+  });
 
   // Con ratón, las acciones flotan sobre el final de la fila al pasar por encima (sin reservar
   // hueco: así el nombre usa todo el ancho). En pantallas táctiles van en la fila, visibles.
@@ -56,15 +66,21 @@ export function DeckListRow({ entry, hasCommander, flagged }: DeckListRowProps) 
       className={cn(
         "group relative flex h-8 items-center gap-2 rounded-md px-2 text-sm transition-colors duration-150 hover:bg-surface-raised/60",
         flagged && "bg-danger/10 hover:bg-danger/15",
+        // Mientras viaja con el cursor, su sitio en la lista se queda atenuado.
+        isDragging && "opacity-40",
       )}
     >
-      <span className="w-6 text-right text-muted tabular-nums">{quantity}</span>
-      <span
-        className={cn("min-w-0 flex-1 truncate", flagged && "text-danger")}
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        aria-roledescription="carta del mazo"
         title={card.typeLine}
+        className="flex min-w-0 flex-1 cursor-grab items-center gap-2 rounded-sm outline-none focus-visible:ring-1 focus-visible:ring-accent active:cursor-grabbing"
       >
-        {card.name}
-      </span>
+        <span className="w-6 shrink-0 text-right text-muted tabular-nums">{quantity}</span>
+        <span className={cn("min-w-0 flex-1 truncate", flagged && "text-danger")}>{card.name}</span>
+      </div>
 
       <div className={reveal}>
         {board !== "commander" && (
