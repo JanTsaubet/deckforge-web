@@ -56,7 +56,7 @@ export function DeckListTable({ decks, folders, knownTags, filters }: DeckListTa
             <tr key={deck.id} className="transition-colors duration-150 hover:bg-surface/60">
               <td className={CELL}>
                 <Link
-                  href={routes.deck(deck.id)}
+                  href={routes.deckEditor(deck.id)}
                   className="font-medium transition-colors duration-200 hover:text-accent"
                 >
                   {deck.name}

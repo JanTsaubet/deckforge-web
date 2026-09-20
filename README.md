@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). Siguiente: Fase 3, el editor de mazos. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (ya funcional: añadir, mover, guardado automático, estadísticas y validación). Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -273,18 +273,24 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Importación de listas en texto (MTG Arena, MTGO, Moxfield…) con vista previa: resuelve las cartas con `/cards/collection`, reintenta por nombre si la edición no existe y señala las líneas que fallan
 - [x] Recorrido completo verificado contra Postgres real: registro, crear y borrar mazos, cerrar sesión
 
-### Fase 3 · Editor de mazos
+### Fase 3 · Editor de mazos 🚧
 
-- [ ] Layout de tres columnas redimensionables; pestañas en móvil
-- [ ] Añadir cartas con autocompletado, cantidades rápidas y paleta de comandos (`cmdk`)
-- [ ] Zonas con _drag & drop_ (dnd-kit) y animaciones de reordenación
-- [ ] Agrupar por tipo, CMC, color o etiqueta; vistas de texto, imágenes y pilas
-- [ ] Guardado automático optimista (`useOptimistic` + cola de sincronización), deshacer/rehacer
-- [ ] Estadísticas en vivo: curva de maná, colores, tipos, precio y fuentes de maná
-- [ ] Validación de legalidad: tamaño, copias, identidad de color y lista de prohibidas
-- [ ] Selector de comandante: fija la identidad de color y filtra el resto del editor
+- [x] API del editor: el mazo con los datos de cada carta, `PATCH /v1/decks/:id/entries` (cambios idempotentes y atómicos) y buscador sobre el catálogo local
+- [x] Layout de tres columnas (añadir · mazo · análisis); pestañas en móvil
+- [ ] Columnas redimensionables
+- [x] Añadir cartas con autocompletado, cantidades rápidas (`4 Lightning Bolt`) y teclado (flechas, Enter, `/`)
+- [ ] Paleta de comandos (`cmdk`)
+- [ ] Zonas con _drag & drop_ (dnd-kit); de momento, mover con el menú de cada carta
+- [x] Agrupar por tipo, con animaciones al añadir y quitar
+- [ ] Agrupar por coste, color o etiqueta; vistas de imágenes y pilas
+- [x] Guardado automático optimista (agrupa cambios, reintenta si falla, avisa antes de cerrar con cambios sin guardar) y deshacer/rehacer
+- [x] Estadísticas en vivo: curva de maná, símbolos de color, tipos, valor medio y precio
+- [ ] Fuentes de maná frente a lo que piden los costes
+- [x] Validación de legalidad: tamaño, copias (con las excepciones de texto), identidad de color, prohibidas y Game Changers
+- [x] Selector de comandante: la corona fija la identidad de color y filtra el buscador
 - [ ] **Quick adds v1:** cartas casi obligatorias de esa identidad de color, agrupadas por función
       (rampa, robo, remoción, tierras), añadibles de una en una o por paquetes completos
+- [ ] Vista pública del mazo (lectura), a partir de los componentes del editor
 - [ ] Historial de versiones con _diffs_
 
 ### Fase 4 · Pulido de la experiencia

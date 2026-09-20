@@ -54,7 +54,8 @@ export function DeckCard({ deck, folders, knownTags, filters }: DeckCardProps) {
           <div className="flex items-center justify-between gap-2">
             <h3 className="truncate font-semibold">
               <Link
-                href={routes.deck(deck.id)}
+                // La biblioteca es tuya: abrir un mazo es abrir su editor.
+                href={routes.deckEditor(deck.id)}
                 className="outline-none after:absolute after:inset-0 after:content-['']"
               >
                 {deck.name}

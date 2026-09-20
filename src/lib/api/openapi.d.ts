@@ -116,6 +116,38 @@ export interface paths {
         patch: operations["DecksController_update"];
         trace?: never;
     };
+    "/v1/decks/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["DecksController_updateEntries"];
+        trace?: never;
+    };
+    "/v1/cards/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CardsController_search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -195,6 +227,44 @@ export interface components {
             /** @description Cartas iniciales. Las líneas repetidas (misma carta y zona) se suman. */
             entries?: components["schemas"]["DeckEntryInputDto"][];
         };
+        CardDto: {
+            /** @description Id de Scryfall de la impresión */
+            id: string;
+            oracleId: string | null;
+            name: string;
+            layout: string;
+            /** @example {2}{R}{R} */
+            manaCost: string | null;
+            /** @description Valor de maná (antes CMC) */
+            manaValue: number;
+            /** @example Legendary Creature — Goblin Warrior */
+            typeLine: string;
+            oracleText: string | null;
+            colors: ("W" | "U" | "B" | "R" | "G")[];
+            colorIdentity: ("W" | "U" | "B" | "R" | "G")[];
+            rarity: string;
+            setCode: string;
+            setName: string;
+            collectorNumber: string;
+            imageSmall: string | null;
+            imageNormal: string | null;
+            imageArtCrop: string | null;
+            /** @description Precio en euros (Cardmarket) */
+            priceEur: number | null;
+            /** @description Precio en dólares (TCGplayer) */
+            priceUsd: number | null;
+            /**
+             * @example {
+             *       "commander": "legal",
+             *       "modern": "not_legal"
+             *     }
+             */
+            legalities: {
+                [key: string]: string;
+            };
+            /** @description En la lista de "Game Changers" de Commander */
+            gameChanger: boolean;
+        };
         DeckEntryDto: {
             /** @description Id de Scryfall de la impresión */
             cardId: string;
@@ -202,6 +272,8 @@ export interface components {
             board: "commander" | "main" | "sideboard" | "maybeboard";
             quantity: number;
             tags: string[];
+            /** @description Datos de la carta; null si el catálogo local aún no la conoce */
+            card: components["schemas"]["CardDto"] | null;
         };
         DeckDto: {
             /** Format: uuid */
@@ -231,6 +303,8 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             entries: components["schemas"]["DeckEntryDto"][];
+            /** @description Si quien lo pide puede editarlo (es su dueño) */
+            viewerCanEdit: boolean;
         };
         UpdateDeckDto: {
             /** @example Atraxa, superamigos */
@@ -253,6 +327,20 @@ export interface components {
             folderId?: string | null;
             /** @description Se guardan en minúsculas y sin repetir */
             tags?: string[];
+        };
+        EntryChangeDto: {
+            /**
+             * Format: uuid
+             * @description Id de Scryfall de la impresión
+             */
+            cardId: string;
+            /** @enum {string} */
+            board: "commander" | "main" | "sideboard" | "maybeboard";
+            /** @description Cantidad final de esa carta en esa zona. 0 la quita. */
+            quantity: number;
+        };
+        UpdateEntriesDto: {
+            changes: components["schemas"]["EntryChangeDto"][];
         };
     };
     responses: never;
@@ -605,6 +693,71 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    DecksController_updateEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEntriesDto"];
+            };
+        };
+        responses: {
+            /** @description El mazo con los cambios aplicados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeckDto"];
+                };
+            };
+            /** @description Carta que no existe o demasiadas cartas distintas */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No existe o no es tuyo */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CardsController_search: {
+        parameters: {
+            query: {
+                q: string;
+                /** @description Solo cartas que quepan en esta identidad de color, p. ej. `RG`. `C` = solo incoloras. */
+                identity?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Una impresión por carta, las más jugadas primero */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardDto"][];
+                };
             };
         };
     };

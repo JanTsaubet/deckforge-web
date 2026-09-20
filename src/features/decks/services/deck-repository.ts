@@ -4,6 +4,9 @@ import type { Deck, DeckEntry, DeckSearchParams, DeckSummary } from "../types/de
 /** Una carta al crear un mazo: sin etiquetas por carta, que llegan con el editor. */
 export type NewDeckEntry = Pick<DeckEntry, "cardId" | "board" | "quantity">;
 
+/** Cambio de cartas: la cantidad final de una carta en una zona. 0 la quita. */
+export type EntryChange = NewDeckEntry;
+
 /**
  * Datos para crear un mazo. Todo salvo el nombre es opcional: la API pone sus valores por
  * defecto. `entries` permite crearlo ya con cartas (importación) en una sola operación.
@@ -41,6 +44,8 @@ export interface DeckWriter {
   remove(deckId: string): Promise<void>;
   /** Copia un mazo propio, o uno público de otra persona, a la biblioteca del usuario. */
   duplicate(deckId: string): Promise<Deck>;
+  /** Añade, quita o mueve cartas; todos los cambios se aplican juntos o ninguno. */
+  updateEntries(deckId: string, changes: EntryChange[]): Promise<Deck>;
 }
 
 export interface DeckRepository extends DeckReader, DeckWriter {}

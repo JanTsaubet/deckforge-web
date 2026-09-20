@@ -1,8 +1,14 @@
 import type { components } from "@/lib/api/openapi";
 import type { HttpClient } from "@/lib/http/http-client";
 import type { Paginated } from "@/types/pagination";
-import type { CreateDeckInput, DeckRepository, UpdateDeckInput } from "../services/deck-repository";
+import type {
+  CreateDeckInput,
+  DeckRepository,
+  EntryChange,
+  UpdateDeckInput,
+} from "../services/deck-repository";
 import type { Deck, DeckSummary } from "../types/deck";
+import { toCatalogCard } from "./catalog-card-mapper";
 
 type ApiDeckSummary = components["schemas"]["DeckSummaryDto"];
 type ApiDeck = components["schemas"]["DeckDto"];
@@ -60,6 +66,16 @@ export class HttpDeckRepository implements DeckRepository {
     await this.http.request<null>(deckPath(deckId), { method: "DELETE", ...NO_STORE });
   }
 
+  async updateEntries(deckId: string, changes: EntryChange[]): Promise<Deck> {
+    const deck = await this.http.request<ApiDeck>(`${deckPath(deckId)}/entries`, {
+      method: "PATCH",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ changes }),
+      ...NO_STORE,
+    });
+    return toDeck(deck);
+  }
+
   async duplicate(deckId: string): Promise<Deck> {
     const copy = await this.http.request<ApiDeck>(`${deckPath(deckId)}/duplicate`, {
       method: "POST",
@@ -100,7 +116,13 @@ function toDeck(deck: ApiDeck): Deck {
     visibility: deck.visibility,
     folderId: deck.folderId ?? undefined,
     tags: deck.tags,
-    entries: deck.entries,
+    colorIdentity: deck.colorIdentity,
+    coverImageUrl: deck.coverImageUrl ?? undefined,
+    entries: deck.entries.map(({ card, ...entry }) => ({
+      ...entry,
+      card: card ? toCatalogCard(card) : undefined,
+    })),
+    viewerCanEdit: deck.viewerCanEdit,
     createdAt: deck.createdAt,
     updatedAt: deck.updatedAt,
   };
