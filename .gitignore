@@ -9,6 +9,12 @@
 next-env.d.ts
 *.tsbuildinfo
 
+# Instrucciones para agentes de IA que genera `next dev` en cada arranque. Se regeneran solas,
+# así que versionarlas solo añadiría ruido; lo que el proyecto quiera contarle a un agente va
+# en un fichero propio, escrito a mano.
+/AGENTS.md
+/CLAUDE.md
+
 # Producción
 /build
 
