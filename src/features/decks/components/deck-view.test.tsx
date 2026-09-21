@@ -34,7 +34,7 @@ const island = catalogCard({
 });
 
 const deck = (...lines: DeckCardLine[]) => [
-  { card: krenko, board: "commander" as const, quantity: 1 },
+  { card: krenko, board: "commander" as const, quantity: 1, tags: [] },
   ...lines,
 ];
 
@@ -43,9 +43,9 @@ describe("DeckView", () => {
     render(
       <DeckView
         lines={deck(
-          { card: bolt, board: "main", quantity: 1 },
-          { card: mountain, board: "main", quantity: 98 },
-          { card: island, board: "maybeboard", quantity: 1 },
+          { card: bolt, board: "main", quantity: 1, tags: [] },
+          { card: mountain, board: "main", quantity: 98, tags: [] },
+          { card: island, board: "maybeboard", quantity: 1, tags: [] },
         )}
         format="commander"
       />,
@@ -70,8 +70,8 @@ describe("DeckView", () => {
     render(
       <DeckView
         lines={deck(
-          { card: mountain, board: "main", quantity: 98 },
-          { card: island, board: "main", quantity: 1 },
+          { card: mountain, board: "main", quantity: 98, tags: [] },
+          { card: island, board: "main", quantity: 1, tags: [] },
         )}
         format="commander"
       />,
@@ -85,7 +85,10 @@ describe("DeckView", () => {
   it("cambia a imágenes sin perder las cartas", async () => {
     const user = userEvent.setup();
     render(
-      <DeckView lines={deck({ card: bolt, board: "main", quantity: 4 })} format="commander" />,
+      <DeckView
+        lines={deck({ card: bolt, board: "main", quantity: 4, tags: [] })}
+        format="commander"
+      />,
     );
 
     // En texto, cada línea lleva el precio de sus copias (4 × 1,50 €).
@@ -103,7 +106,7 @@ describe("DeckView", () => {
   it("avisa de las cartas que el catálogo todavía no conoce", () => {
     render(
       <DeckView
-        lines={deck({ card: bolt, board: "main", quantity: 1 })}
+        lines={deck({ card: bolt, board: "main", quantity: 1, tags: [] })}
         format="commander"
         unknownCards={3}
       />,

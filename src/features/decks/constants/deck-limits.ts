@@ -6,6 +6,8 @@ export const MAX_DECK_NAME_LENGTH = 100;
 export const MAX_FOLDER_NAME_LENGTH = 50;
 export const MAX_DECK_TAGS = 10;
 export const MAX_TAG_LENGTH = 30;
+/** Etiquetas de cada carta dentro de un mazo ("rampa", "robo"…). */
+export const MAX_ENTRY_TAGS = 10;
 export const MAX_DECK_ENTRIES = 500;
 export const MAX_ENTRY_QUANTITY = 999;
 

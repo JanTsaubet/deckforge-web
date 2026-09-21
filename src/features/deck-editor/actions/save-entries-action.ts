@@ -6,6 +6,12 @@ import { routes } from "@/config/routes";
 import { describeApiError, type ActionResult } from "@/features/decks/actions/action-errors";
 import { createServerDeckRepository } from "@/features/decks/api/server-deck-repository";
 import { DECK_BOARDS } from "@/features/decks/constants/deck-formats";
+import {
+  MAX_ENTRY_QUANTITY,
+  MAX_ENTRY_TAGS,
+  MAX_TAG_LENGTH,
+  normalizeTag,
+} from "@/features/decks/constants/deck-limits";
 import type { EntryChange } from "@/features/decks/services/deck-repository";
 
 /** Mismo límite que la API: el guardado automático nunca envía tantos de golpe. */
@@ -16,7 +22,11 @@ const changesSchema = z
     z.object({
       cardId: z.uuid(),
       board: z.enum(DECK_BOARDS),
-      quantity: z.int().min(0).max(999),
+      quantity: z.int().min(0).max(MAX_ENTRY_QUANTITY),
+      tags: z
+        .array(z.string().transform(normalizeTag).pipe(z.string().min(1).max(MAX_TAG_LENGTH)))
+        .max(MAX_ENTRY_TAGS)
+        .optional(),
     }),
   )
   .min(1)

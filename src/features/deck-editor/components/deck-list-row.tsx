@@ -1,7 +1,7 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { Crown, Minus, Plus } from "lucide-react";
+import { Crown, Minus, Plus, Tag } from "lucide-react";
 import { motion } from "motion/react";
 import { ManaCost } from "@/features/cards/components/mana-cost";
 import { DECK_BOARD_LABELS, DECK_BOARDS } from "@/features/decks/constants/deck-formats";
@@ -10,6 +10,7 @@ import type { DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { entryKey } from "../lib/editor-entries";
 import { useDeckEditor } from "../store/deck-editor-context";
+import { CardTagsDialog } from "./card-tags-dialog";
 
 interface DeckListRowProps {
   entry: DeckCardLine;
@@ -17,6 +18,13 @@ interface DeckListRowProps {
   hasCommander: boolean;
   /** Resaltada porque tiene un problema de legalidad. */
   flagged: boolean;
+  /** Etiquetas usadas en el mazo, para sugerirlas al etiquetar esta carta. */
+  deckTags: string[];
+  /**
+   * Identificador para arrastrarla. Agrupando por etiqueta, una carta con dos sale dos veces
+   * y cada fila necesita el suyo; por defecto, el de la carta en su zona.
+   */
+  dragId?: string;
 }
 
 const ICON_BUTTON =
@@ -29,14 +37,14 @@ const ICON_BUTTON =
  * La cantidad y el nombre son el asa para arrastrar la carta a otra zona. Los botones quedan
  * fuera de esa zona para que pulsarlos no sea nunca el principio de un arrastre.
  */
-export function DeckListRow({ entry, hasCommander, flagged }: DeckListRowProps) {
-  const { card, board, quantity } = entry;
+export function DeckListRow({ entry, hasCommander, flagged, deckTags, dragId }: DeckListRowProps) {
+  const { card, board, quantity, tags } = entry;
   const addCopies = useDeckEditor((state) => state.addCopies);
   const moveCard = useDeckEditor((state) => state.moveCard);
   const setPreviewCard = useDeckEditor((state) => state.setPreviewCard);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: entryKey(board, card.id),
+    id: dragId ?? entryKey(board, card.id),
     data: { card, board, quantity },
   });
 
@@ -116,6 +124,21 @@ export function DeckListRow({ entry, hasCommander, flagged }: DeckListRowProps) 
             <Crown className="size-3.5" aria-hidden />
           </button>
         )}
+        <CardTagsDialog
+          entry={entry}
+          deckTags={deckTags}
+          trigger={(open) => (
+            <button
+              type="button"
+              onClick={open}
+              aria-label={`Etiquetas de ${card.name}${tags.length > 0 ? `: ${tags.join(", ")}` : ""}`}
+              title={tags.length > 0 ? `Etiquetas: ${tags.join(", ")}` : "Etiquetar"}
+              className={cn(ICON_BUTTON, tags.length > 0 && "text-accent")}
+            >
+              <Tag className="size-3.5" aria-hidden />
+            </button>
+          )}
+        />
         <select
           aria-label={`Mover ${card.name} a otra zona`}
           title="Mover a…"

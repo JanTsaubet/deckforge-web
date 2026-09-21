@@ -31,6 +31,7 @@ const e = (
   card,
   board,
   quantity,
+  tags: [],
 });
 
 /** Un mazo de Commander válido de Krenko: comandante + 99 montañas. */

@@ -1,7 +1,15 @@
 import { createStore } from "zustand/vanilla";
 import type { EntryChange } from "@/features/decks/services/deck-repository";
 import type { CatalogCard, DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
-import { addCopies, diffEntries, entryKey, moveCard, setQuantity } from "../lib/editor-entries";
+import {
+  addCopies,
+  diffEntries,
+  entryKey,
+  moveCard,
+  sameChange,
+  setQuantity,
+  setTags,
+} from "../lib/editor-entries";
 
 /** Pasos que se pueden deshacer. Suficientes para cualquier sesión, sin crecer sin límite. */
 const HISTORY_LIMIT = 100;
@@ -33,6 +41,7 @@ export interface DeckEditorActions {
   setQuantity: (card: CatalogCard, board: DeckBoard, quantity: number) => void;
   addCopies: (card: CatalogCard, board: DeckBoard, delta: number) => void;
   moveCard: (card: CatalogCard, from: DeckBoard, to: DeckBoard) => void;
+  setTags: (card: CatalogCard, board: DeckBoard, tags: string[]) => void;
   undo: () => void;
   redo: () => void;
   setPreviewCard: (card: CatalogCard | undefined) => void;
@@ -88,6 +97,7 @@ export function createDeckEditorStore(initialEntries: DeckCardLine[]) {
         edit((entries) => setQuantity(entries, card, board, quantity)),
       addCopies: (card, board, delta) => edit((entries) => addCopies(entries, card, board, delta)),
       moveCard: (card, from, to) => edit((entries) => moveCard(entries, card, from, to)),
+      setTags: (card, board, tags) => edit((entries) => setTags(entries, card, board, tags)),
 
       undo: () => {
         const { entries, past, future } = get();
@@ -115,8 +125,9 @@ export function createDeckEditorStore(initialEntries: DeckCardLine[]) {
         const pending = { ...get().pending };
         for (const change of sent) {
           const key = entryKey(change.board, change.cardId);
-          // Si cambió mientras se guardaba, sigue pendiente con su valor nuevo.
-          if (pending[key]?.quantity === change.quantity) delete pending[key];
+          // Si cambió mientras se guardaba (cantidad o etiquetas), sigue pendiente con lo nuevo.
+          const current = pending[key];
+          if (current && sameChange(current, change)) delete pending[key];
         }
         set({ pending, saveStatus: Object.keys(pending).length > 0 ? "pending" : "saved" });
       },

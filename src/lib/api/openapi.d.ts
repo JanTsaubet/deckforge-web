@@ -338,6 +338,8 @@ export interface components {
             board: "commander" | "main" | "sideboard" | "maybeboard";
             /** @description Cantidad final de esa carta en esa zona. 0 la quita. */
             quantity: number;
+            /** @description Etiquetas de la carta en este mazo ("rampa", "robo"…): sustituyen a las que tuviera. Sin este campo se conservan. Se guardan en minúsculas y sin repetir. */
+            tags?: string[];
         };
         UpdateEntriesDto: {
             changes: components["schemas"]["EntryChangeDto"][];

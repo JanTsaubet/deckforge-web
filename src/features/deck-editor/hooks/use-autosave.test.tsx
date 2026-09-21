@@ -54,7 +54,7 @@ describe("useAutosave", () => {
 
     await advance(1);
     expect(save).toHaveBeenCalledTimes(1);
-    expect(save).toHaveBeenCalledWith([{ cardId: "bolt", board: "main", quantity: 2 }]);
+    expect(save).toHaveBeenCalledWith([{ cardId: "bolt", board: "main", quantity: 2, tags: [] }]);
     expect(store.getState().saveStatus).toBe("saved");
   });
 
@@ -86,7 +86,7 @@ describe("useAutosave", () => {
 
     expect(store.getState().saveStatus).toBe("error");
     expect(Object.values(store.getState().pending)).toEqual([
-      { cardId: "bolt", board: "main", quantity: 3 },
+      { cardId: "bolt", board: "main", quantity: 3, tags: [] },
     ]);
   });
 
@@ -108,7 +108,9 @@ describe("useAutosave", () => {
     await advance(SAVE_DELAY_MS);
 
     expect(save).toHaveBeenCalledTimes(2);
-    expect(save).toHaveBeenLastCalledWith([{ cardId: "bolt", board: "main", quantity: 2 }]);
+    expect(save).toHaveBeenLastCalledWith([
+      { cardId: "bolt", board: "main", quantity: 2, tags: [] },
+    ]);
     expect(store.getState().saveStatus).toBe("saved");
   });
 });

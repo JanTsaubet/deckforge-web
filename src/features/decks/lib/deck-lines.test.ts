@@ -3,8 +3,9 @@ import { catalogCard } from "@/test/fixtures/catalog-card";
 import type { DeckCardLine } from "../types/deck";
 import {
   countCopies,
+  GROUP_MODES,
   groupByBoard,
-  groupByCategory,
+  groupLines,
   playableLines,
   toDeckCardLines,
 } from "./deck-lines";
@@ -26,18 +27,19 @@ const line = (card: DeckCardLine["card"], quantity = 1, board: DeckCardLine["boa
   card,
   board,
   quantity,
+  tags: [],
 });
 
 const names = (lines: DeckCardLine[]) => lines.map((entry) => entry.card.name);
 
 describe("toDeckCardLines", () => {
-  it("deja fuera las cartas que el catálogo aún no conoce", () => {
+  it("deja fuera las cartas que el catálogo aún no conoce, y conserva las etiquetas", () => {
     const lines = toDeckCardLines([
-      { cardId: "bolt", board: "main", quantity: 4, tags: [], card: bolt },
+      { cardId: "bolt", board: "main", quantity: 4, tags: ["remoción"], card: bolt },
       { cardId: "desconocida", board: "main", quantity: 1, tags: [] },
     ]);
 
-    expect(lines).toEqual([{ card: bolt, board: "main", quantity: 4 }]);
+    expect(lines).toEqual([{ card: bolt, board: "main", quantity: 4, tags: ["remoción"] }]);
   });
 });
 
@@ -79,20 +81,95 @@ describe("groupByBoard", () => {
   });
 });
 
-describe("groupByCategory", () => {
-  it("agrupa por tipo en el orden de la lista, con las tierras al final", () => {
-    const groups = groupByCategory([line(mountain, 20), line(bolt), line(sol), line(krenko)]);
+/** Las etiquetas de cada grupo, en orden: lo que ve quien mira el mazo. */
+const labels = (groups: ReturnType<typeof groupLines>) =>
+  groups.map((group) => `${group.label}: ${names(group.lines).join(", ")}`);
 
-    expect(groups.map((group) => group.category)).toEqual([
-      "creature",
-      "instant",
-      "artifact",
-      "land",
-    ]);
-    expect(names(groups[1]?.lines ?? [])).toEqual(["Lightning Bolt"]);
+describe("groupLines", () => {
+  const goblins = catalogCard({
+    id: "goblins",
+    name: "Goblin Bombardment",
+    typeLine: "Enchantment",
+    manaValue: 2,
+    colors: ["R"],
+  });
+  const boros = catalogCard({
+    id: "boros",
+    name: "Lightning Helix",
+    typeLine: "Instant",
+    manaValue: 2,
+    colors: ["R", "W"],
+  });
+  const emrakul = catalogCard({
+    id: "emrakul",
+    name: "Emrakul, the Aeons Torn",
+    typeLine: "Legendary Creature — Eldrazi",
+    manaValue: 15,
   });
 
-  it("no devuelve grupos vacíos", () => {
-    expect(groupByCategory([])).toEqual([]);
+  it("por tipo, en el orden de siempre y con las tierras al final", () => {
+    const groups = groupLines([line(mountain, 20), line(bolt), line(sol), line(krenko)], "type");
+
+    expect(labels(groups)).toEqual([
+      "Criaturas: Krenko, Mob Boss",
+      "Instantáneos: Lightning Bolt",
+      "Artefactos: Sol Ring",
+      "Tierras: Mountain",
+    ]);
+  });
+
+  it("por coste, de menos a más, con 7+ juntos y las tierras aparte", () => {
+    const groups = groupLines(
+      [line(mountain), line({ ...sol, manaValue: 1 }), line(goblins), line(emrakul)],
+      "cost",
+    );
+
+    expect(labels(groups)).toEqual([
+      "Coste 1: Sol Ring",
+      "Coste 2: Goblin Bombardment",
+      "Coste 7+: Emrakul, the Aeons Torn",
+      "Tierras: Mountain",
+    ]);
+  });
+
+  it("por color: uno solo, multicolor, incolora y tierras, en orden WUBRG", () => {
+    const groups = groupLines([line(mountain), line(sol), line(boros), line(goblins)], "color");
+
+    expect(labels(groups)).toEqual([
+      "Rojo: Goblin Bombardment",
+      "Multicolor: Lightning Helix",
+      "Incoloras: Sol Ring",
+      "Tierras: Mountain",
+    ]);
+  });
+
+  it("por etiqueta: una carta con varias sale en cada una, y las demás al final", () => {
+    const groups = groupLines(
+      [
+        { ...line(sol), tags: ["rampa", "artefacto"] },
+        { ...line(bolt), tags: ["remoción"] },
+        { ...line(krenko), tags: ["Rampa"] },
+        line(mountain),
+      ],
+      "tag",
+    );
+
+    expect(labels(groups)).toEqual([
+      "artefacto: Sol Ring",
+      "rampa: Sol Ring",
+      "Rampa: Krenko, Mob Boss",
+      "remoción: Lightning Bolt",
+      "Sin etiqueta: Mountain",
+    ]);
+  });
+
+  it("las claves no se repiten, aunque una etiqueta se llame como un tipo", () => {
+    const groups = groupLines([{ ...line(sol), tags: ["land"] }, line(mountain)], "tag");
+
+    expect(groups.map((group) => group.key)).toEqual(["tag:land", "untagged"]);
+  });
+
+  it("sin cartas, sin grupos", () => {
+    for (const mode of GROUP_MODES) expect(groupLines([], mode)).toEqual([]);
   });
 });

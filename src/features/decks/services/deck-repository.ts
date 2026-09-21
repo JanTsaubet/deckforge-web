@@ -4,8 +4,11 @@ import type { Deck, DeckEntry, DeckSearchParams, DeckSummary } from "../types/de
 /** Una carta al crear un mazo: sin etiquetas por carta, que llegan con el editor. */
 export type NewDeckEntry = Pick<DeckEntry, "cardId" | "board" | "quantity">;
 
-/** Cambio de cartas: la cantidad final de una carta en una zona. 0 la quita. */
-export type EntryChange = NewDeckEntry;
+/**
+ * Cambio de cartas: la cantidad final de una carta en una zona (0 la quita) y sus etiquetas.
+ * Sin `tags`, la API conserva las que tuviera la carta.
+ */
+export type EntryChange = NewDeckEntry & { tags?: string[] };
 
 /**
  * Datos para crear un mazo. Todo salvo el nombre es opcional: la API pone sus valores por

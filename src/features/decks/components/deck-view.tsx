@@ -6,8 +6,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { CardPreview } from "@/features/cards/components/card-preview";
 import { cn } from "@/lib/utils/cn";
 import { DECK_BOARD_LABELS } from "../constants/deck-formats";
-import { CARD_CATEGORY_LABELS } from "../lib/card-category";
-import { countCopies, groupByBoard, groupByCategory } from "../lib/deck-lines";
+import { useGroupMode } from "../hooks/use-group-mode";
+import { countCopies, groupByBoard, groupLines } from "../lib/deck-lines";
 import { computeDeckStats } from "../lib/deck-stats";
 import { validateDeck } from "../lib/deck-validation";
 import type { CatalogCard, DeckCardLine, DeckFormat } from "../types/deck";
@@ -15,6 +15,7 @@ import { DeckIssues } from "./deck-issues";
 import { DeckStatsPanel } from "./deck-stats-panel";
 import { DeckViewGallery } from "./deck-view-gallery";
 import { DeckViewList } from "./deck-view-list";
+import { GroupModePicker } from "./group-mode-picker";
 
 interface DeckViewProps {
   lines: DeckCardLine[];
@@ -39,9 +40,10 @@ const VIEW_MODES: Array<{ id: ViewMode; label: string; icon: typeof List }> = [
 export function DeckView({ lines, format, unknownCards = 0 }: DeckViewProps) {
   const [view, setView] = useState<ViewMode>("text");
   const [previewCard, setPreviewCard] = useState<CatalogCard>();
+  const [groupMode, setGroupMode] = useGroupMode();
 
   const boards = useMemo(() => groupByBoard(lines), [lines]);
-  const mainGroups = useMemo(() => groupByCategory(boards.main), [boards.main]);
+  const mainGroups = useMemo(() => groupLines(boards.main, groupMode), [boards.main, groupMode]);
   const stats = useMemo(() => computeDeckStats(lines), [lines]);
   const issues = useMemo(() => validateDeck(lines, format), [lines, format]);
 
@@ -78,29 +80,32 @@ export function DeckView({ lines, format, unknownCards = 0 }: DeckViewProps) {
               </>
             )}
           </p>
-          <div
-            role="radiogroup"
-            aria-label="Cómo ver las cartas"
-            className="flex rounded-md border border-border p-0.5 text-xs"
-          >
-            {VIEW_MODES.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={view === id}
-                onClick={() => setView(id)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded px-2 py-1 transition-colors duration-150",
-                  view === id
-                    ? "bg-surface-raised text-foreground"
-                    : "text-muted hover:text-foreground",
-                )}
-              >
-                <Icon className="size-3.5" aria-hidden />
-                {label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <GroupModePicker value={groupMode} onChange={setGroupMode} />
+            <div
+              role="radiogroup"
+              aria-label="Cómo ver las cartas"
+              className="flex rounded-md border border-border p-0.5 text-xs"
+            >
+              {VIEW_MODES.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={view === id}
+                  onClick={() => setView(id)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded px-2 py-1 transition-colors duration-150",
+                    view === id
+                      ? "bg-surface-raised text-foreground"
+                      : "text-muted hover:text-foreground",
+                  )}
+                >
+                  <Icon className="size-3.5" aria-hidden />
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -118,10 +123,10 @@ export function DeckView({ lines, format, unknownCards = 0 }: DeckViewProps) {
               view === "text" && "grid gap-x-6 xl:grid-cols-2",
             )}
           >
-            {mainGroups.map(({ category, lines: group }) => (
-              <section key={category} aria-label={CARD_CATEGORY_LABELS[category]}>
+            {mainGroups.map(({ key, label, lines: group }) => (
+              <section key={key} aria-label={label}>
                 <h4 className="mb-1 px-2 text-xs font-medium text-muted">
-                  {CARD_CATEGORY_LABELS[category]} ({countCopies(group)})
+                  {label} ({countCopies(group)})
                 </h4>
                 {cards(group, boards.commander.length === 0)}
               </section>

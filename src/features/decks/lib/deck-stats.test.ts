@@ -12,6 +12,7 @@ const entry = (
   card: catalogCard(overrides),
   board,
   quantity,
+  tags: [],
 });
 
 describe("cardCategory", () => {

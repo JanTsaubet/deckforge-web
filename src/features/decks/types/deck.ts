@@ -56,6 +56,8 @@ export interface DeckCardLine {
   card: CatalogCard;
   board: DeckBoard;
   quantity: number;
+  /** Etiquetas de su dueño para esta carta en este mazo: "rampa", "robo", "wincon"… */
+  tags: string[];
 }
 
 export interface Deck {

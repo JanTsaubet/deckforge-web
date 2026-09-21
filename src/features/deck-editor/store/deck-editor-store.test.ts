@@ -17,7 +17,7 @@ describe("deck-editor-store", () => {
     expect(quantities(store)).toEqual(["main:bolt×4"]);
     expect(store.getState().saveStatus).toBe("pending");
     expect(Object.values(store.getState().pending)).toEqual([
-      { cardId: "bolt", board: "main", quantity: 4 },
+      { cardId: "bolt", board: "main", quantity: 4, tags: [] },
     ]);
   });
 
@@ -27,18 +27,20 @@ describe("deck-editor-store", () => {
     store.getState().addCopies(bolt, "main", 1);
     store.getState().addCopies(bolt, "main", 1);
 
-    expect(store.getState().beginSave()).toEqual([{ cardId: "bolt", board: "main", quantity: 3 }]);
+    expect(store.getState().beginSave()).toEqual([
+      { cardId: "bolt", board: "main", quantity: 3, tags: [] },
+    ]);
   });
 
   it("deshacer y rehacer vuelven al estado anterior y también se guardan", () => {
-    const store = createDeckEditorStore([{ card: krenko, board: "main", quantity: 1 }]);
+    const store = createDeckEditorStore([{ card: krenko, board: "main", quantity: 1, tags: [] }]);
     store.getState().moveCard(krenko, "main", "commander");
     store.getState().saveSucceeded(store.getState().beginSave());
 
     store.getState().undo();
     expect(quantities(store)).toEqual(["main:krenko×1"]);
     expect(store.getState().beginSave()).toEqual([
-      { cardId: "krenko", board: "main", quantity: 1 },
+      { cardId: "krenko", board: "main", quantity: 1, tags: [] },
       { cardId: "krenko", board: "commander", quantity: 0 },
     ]);
 
@@ -66,8 +68,31 @@ describe("deck-editor-store", () => {
 
     expect(store.getState().saveStatus).toBe("pending");
     expect(Object.values(store.getState().pending)).toEqual([
-      { cardId: "bolt", board: "main", quantity: 2 },
+      { cardId: "bolt", board: "main", quantity: 2, tags: [] },
     ]);
+  });
+
+  it("si solo cambian sus etiquetas mientras se guarda, también siguen pendientes", () => {
+    const store = createDeckEditorStore([]);
+    store.getState().addCopies(bolt, "main", 1);
+    const sent = store.getState().beginSave();
+
+    // Misma cantidad que lo enviado: sin comparar las etiquetas, se daría por guardado.
+    store.getState().setTags(bolt, "main", ["remoción"]);
+    store.getState().saveSucceeded(sent);
+
+    expect(Object.values(store.getState().pending)).toEqual([
+      { cardId: "bolt", board: "main", quantity: 1, tags: ["remoción"] },
+    ]);
+  });
+
+  it("etiquetar se deshace como cualquier otro cambio", () => {
+    const store = createDeckEditorStore([{ card: bolt, board: "main", quantity: 1, tags: [] }]);
+
+    store.getState().setTags(bolt, "main", ["remoción"]);
+    store.getState().undo();
+
+    expect(store.getState().entries[0]?.tags).toEqual([]);
   });
 
   it("si el guardado falla, los cambios no se pierden", () => {
@@ -78,7 +103,9 @@ describe("deck-editor-store", () => {
     store.getState().saveFailed("Sin conexión");
 
     expect(store.getState()).toMatchObject({ saveStatus: "error", saveError: "Sin conexión" });
-    expect(store.getState().beginSave()).toEqual([{ cardId: "bolt", board: "main", quantity: 2 }]);
+    expect(store.getState().beginSave()).toEqual([
+      { cardId: "bolt", board: "main", quantity: 2, tags: [] },
+    ]);
   });
 
   it("una acción que no cambia nada no ensucia el historial", () => {

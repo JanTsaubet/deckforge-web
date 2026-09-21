@@ -4,9 +4,10 @@ import { useDndContext, useDroppable } from "@dnd-kit/core";
 import { Crown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useMemo, type ReactNode } from "react";
+import { GroupModePicker } from "@/features/decks/components/group-mode-picker";
 import { DECK_BOARD_LABELS } from "@/features/decks/constants/deck-formats";
-import { CARD_CATEGORY_LABELS } from "@/features/decks/lib/card-category";
-import { countCopies, groupByBoard, groupByCategory } from "@/features/decks/lib/deck-lines";
+import { useGroupMode } from "@/features/decks/hooks/use-group-mode";
+import { countCopies, groupByBoard, groupLines } from "@/features/decks/lib/deck-lines";
 import type { DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { acceptsCard, dragCard } from "../lib/drag-and-drop";
@@ -20,21 +21,28 @@ interface DeckListProps {
 }
 
 /**
- * El mazo por zonas. El mazo principal se agrupa por tipo de carta (criaturas, instantáneos…,
- * y las tierras al final); dentro de cada grupo, por nombre. Las zonas vacías del banquillo y
- * las "quizás" solo aparecen mientras se arrastra una carta, para poder soltarla ahí.
+ * El mazo por zonas. El mazo principal se agrupa como elija cada cual (por tipo, coste,
+ * color o etiqueta); dentro de cada grupo, por nombre. Las zonas vacías del banquillo y las
+ * "quizás" solo aparecen mientras se arrastra una carta, para poder soltarla ahí.
  */
 export function DeckList({ hasCommander, flaggedCardIds }: DeckListProps) {
   const entries = useDeckEditor((state) => state.entries);
   const dragged = dragCard(useDndContext().active);
 
+  const [groupMode, setGroupMode] = useGroupMode();
+
   const boards = useMemo(() => groupByBoard(entries), [entries]);
-  const groups = useMemo(() => groupByCategory(boards.main), [boards.main]);
+  const groups = useMemo(() => groupLines(boards.main, groupMode), [boards.main, groupMode]);
+  const deckTags = useMemo(
+    () => [...new Set(entries.flatMap((entry) => entry.tags))].sort(),
+    [entries],
+  );
 
   const accepts = (board: DeckBoard) =>
     acceptsCard(board, dragged, { hasCommander, commanderCount: boards.commander.length });
 
-  const rows = (lines: DeckCardLine[]) => (
+  /** `group` distingue las filas de una carta que aparece en varios grupos (etiquetas). */
+  const rows = (lines: DeckCardLine[], group?: string) => (
     <ul className="flex flex-col">
       <AnimatePresence initial={false}>
         {lines.map((entry) => (
@@ -43,6 +51,8 @@ export function DeckList({ hasCommander, flaggedCardIds }: DeckListProps) {
             entry={entry}
             hasCommander={hasCommander}
             flagged={flaggedCardIds.has(entry.card.id)}
+            deckTags={deckTags}
+            dragId={group && `${group}|${entry.board}:${entry.card.id}`}
           />
         ))}
       </AnimatePresence>
@@ -51,6 +61,8 @@ export function DeckList({ hasCommander, flaggedCardIds }: DeckListProps) {
 
   return (
     <div className="flex flex-col gap-6">
+      <GroupModePicker value={groupMode} onChange={setGroupMode} className="justify-end" />
+
       {hasCommander && (
         <Zone
           board="commander"
@@ -75,12 +87,12 @@ export function DeckList({ hasCommander, flaggedCardIds }: DeckListProps) {
           </p>
         ) : (
           <div className="grid gap-x-6 gap-y-4 xl:grid-cols-2">
-            {groups.map(({ category, lines }) => (
-              <section key={category} aria-label={CARD_CATEGORY_LABELS[category]}>
+            {groups.map(({ key, label, lines }) => (
+              <section key={key} aria-label={label}>
                 <h4 className="mb-1 px-2 text-xs font-medium text-muted">
-                  {CARD_CATEGORY_LABELS[category]} ({countCopies(lines)})
+                  {label} ({countCopies(lines)})
                 </h4>
-                {rows(lines)}
+                {rows(lines, key)}
               </section>
             ))}
           </div>
