@@ -278,7 +278,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 
 - [x] API del editor: el mazo con los datos de cada carta, `PATCH /v1/decks/:id/entries` (cambios idempotentes y atómicos) y buscador sobre el catálogo local
 - [x] Layout de tres columnas (añadir · mazo · análisis); pestañas en móvil
-- [ ] Columnas redimensionables
+- [x] Columnas redimensionables: se arrastran o se ajustan con el teclado, doble clic las devuelve a su
+      ancho y cada navegador recuerda el suyo
 - [x] Añadir cartas con autocompletado, cantidades rápidas (`4 Lightning Bolt`) y teclado (flechas, Enter, `/`)
 - [x] Paleta de comandos (`cmdk`, Ctrl+K): añadir cartas por nombre y las acciones de la pantalla,
       sin recordar dónde está cada botón

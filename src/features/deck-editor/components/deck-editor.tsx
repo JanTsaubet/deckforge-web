@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { ColumnResizer } from "@/components/ui/column-resizer";
 import { sortColors } from "@/features/cards/lib/colors";
 import type { ManaColor } from "@/features/cards/types/card";
 import { computeDeckStats } from "@/features/decks/lib/deck-stats";
@@ -10,6 +11,12 @@ import type { DeckCardLine, DeckFormat } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { saveEntriesAction } from "../actions/save-entries-action";
 import { useAutosave } from "../hooks/use-autosave";
+import {
+  COLUMN_LIMITS,
+  MIN_DECK_COLUMN,
+  useEditorColumns,
+  type ColumnSide,
+} from "../hooks/use-editor-columns";
 import { DeckEditorProvider, useDeckEditor } from "../store/deck-editor-context";
 import { CardSearch } from "./card-search";
 import { DeckAnalysis } from "./deck-analysis";
@@ -49,7 +56,9 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
   const undo = useDeckEditor((state) => state.undo);
   const redo = useDeckEditor((state) => state.redo);
   const searchRef = useRef<HTMLInputElement>(null);
+  const deckColumnRef = useRef<HTMLElement>(null);
   const [tab, setTab] = useState<MobileTab>("deck");
+  const columns = useEditorColumns();
 
   const save = useCallback(
     (changes: EntryChange[]) => saveEntriesAction(deckId, changes),
@@ -106,6 +115,31 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
 
   const panel = (id: MobileTab) => cn(tab !== id && "hidden", "lg:block");
 
+  /** Asa de una columna lateral; la del mazo cede espacio hasta su mínimo, no más. */
+  const resizer = (side: ColumnSide, label: string) => (
+    <ColumnResizer
+      label={label}
+      side={side}
+      value={columns.widths[side]}
+      min={COLUMN_LIMITS[side].min}
+      max={(width) =>
+        Math.min(
+          COLUMN_LIMITS[side].max,
+          width + (deckColumnRef.current?.getBoundingClientRect().width ?? 0) - MIN_DECK_COLUMN,
+        )
+      }
+      onResize={(width) => columns.resize(side, width)}
+      onResizeEnd={(width) => columns.commit(side, width)}
+      onReset={() => columns.reset(side)}
+      className="hidden lg:sticky lg:top-20 lg:flex lg:h-[calc(100dvh-6rem)] lg:self-start"
+    />
+  );
+  // Sin ancho elegido, la variable no se define y cada columna usa el suyo de siempre.
+  const columnStyle = {
+    "--col-left": columns.widths.left && `${columns.widths.left}px`,
+    "--col-right": columns.widths.right && `${columns.widths.right}px`,
+  } as CSSProperties;
+
   return (
     <DeckDndContext>
       <div className="flex flex-col gap-5">
@@ -142,7 +176,12 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
           ))}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)_280px] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
+        {/* Cinco columnas en escritorio: buscador · asa · mazo · asa · análisis. Con las asas
+            de 12 px y 6 px de hueco a cada lado, quedan los mismos 24 px entre columnas. */}
+        <div
+          style={columnStyle}
+          className="grid gap-6 lg:grid-cols-[var(--col-left,300px)_12px_minmax(0,1fr)_12px_var(--col-right,280px)] lg:gap-x-1.5 xl:grid-cols-[var(--col-left,340px)_12px_minmax(0,1fr)_12px_var(--col-right,300px)]"
+        >
           <aside
             aria-label="Añadir cartas"
             className={cn(
@@ -158,9 +197,13 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
             />
           </aside>
 
-          <section aria-label="Lista del mazo" className={panel("deck")}>
+          {resizer("left", "Ancho de la columna para añadir cartas")}
+
+          <section ref={deckColumnRef} aria-label="Lista del mazo" className={panel("deck")}>
             <DeckList hasCommander={hasCommander} flaggedCardIds={flaggedCardIds} />
           </section>
+
+          {resizer("right", "Ancho de la columna de análisis")}
 
           <aside
             aria-label="Análisis"
