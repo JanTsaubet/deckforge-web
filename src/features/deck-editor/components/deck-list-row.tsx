@@ -1,16 +1,13 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { Crown, Minus, Plus, Tag } from "lucide-react";
 import { motion } from "motion/react";
 import { ManaCost } from "@/features/cards/components/mana-cost";
-import { DECK_BOARD_LABELS, DECK_BOARDS } from "@/features/decks/constants/deck-formats";
-import { canBeCommander } from "@/features/decks/lib/deck-validation";
-import type { DeckBoard, DeckCardLine } from "@/features/decks/types/deck";
+import type { DeckCardLine } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { entryKey } from "../lib/editor-entries";
 import { useDeckEditor } from "../store/deck-editor-context";
-import { CardTagsDialog } from "./card-tags-dialog";
+import { DeckEntryActions } from "./deck-entry-actions";
 
 interface DeckListRowProps {
   entry: DeckCardLine;
@@ -27,9 +24,6 @@ interface DeckListRowProps {
   dragId?: string;
 }
 
-const ICON_BUTTON =
-  "grid size-6 place-items-center rounded text-muted transition-colors duration-150 hover:bg-surface-raised hover:text-foreground disabled:opacity-40";
-
 /**
  * Una línea del mazo: cantidad, nombre, coste y acciones. Las acciones aparecen al pasar el
  * ratón o al llegar con el teclado; en pantallas táctiles están siempre a la vista.
@@ -38,9 +32,7 @@ const ICON_BUTTON =
  * fuera de esa zona para que pulsarlos no sea nunca el principio de un arrastre.
  */
 export function DeckListRow({ entry, hasCommander, flagged, deckTags, dragId }: DeckListRowProps) {
-  const { card, board, quantity, tags } = entry;
-  const addCopies = useDeckEditor((state) => state.addCopies);
-  const moveCard = useDeckEditor((state) => state.moveCard);
+  const { card, board, quantity } = entry;
   const setPreviewCard = useDeckEditor((state) => state.setPreviewCard);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -51,15 +43,10 @@ export function DeckListRow({ entry, hasCommander, flagged, deckTags, dragId }: 
   // Con ratón, las acciones flotan sobre el final de la fila al pasar por encima (sin reservar
   // hueco: así el nombre usa todo el ancho). En pantallas táctiles van en la fila, visibles.
   const reveal = cn(
-    "flex items-center gap-0.5 rounded-md transition-opacity duration-150",
+    "transition-opacity duration-150",
     "can-hover:pointer-events-none can-hover:absolute can-hover:top-1/2 can-hover:right-1 can-hover:-translate-y-1/2 can-hover:bg-surface-raised can-hover:px-0.5 can-hover:opacity-0 can-hover:shadow-md",
     "can-hover:group-hover:pointer-events-auto can-hover:group-hover:opacity-100",
     "can-hover:group-focus-within:pointer-events-auto can-hover:group-focus-within:opacity-100",
-  );
-  // Al hueco de comandante solo se ofrece mover lo que puede serlo.
-  const destinations = DECK_BOARDS.filter(
-    (target) =>
-      target !== board && (target !== "commander" || (hasCommander && canBeCommander(card))),
   );
 
   return (
@@ -90,77 +77,12 @@ export function DeckListRow({ entry, hasCommander, flagged, deckTags, dragId }: 
         <span className={cn("min-w-0 flex-1 truncate", flagged && "text-danger")}>{card.name}</span>
       </div>
 
-      <div className={reveal}>
-        {board !== "commander" && (
-          <>
-            <button
-              type="button"
-              onClick={() => addCopies(card, board, -1)}
-              aria-label={`Quitar una copia de ${card.name}`}
-              title="Quitar una"
-              className={ICON_BUTTON}
-            >
-              <Minus className="size-3.5" aria-hidden />
-            </button>
-            <button
-              type="button"
-              onClick={() => addCopies(card, board, 1)}
-              aria-label={`Añadir una copia de ${card.name}`}
-              title="Añadir una"
-              className={ICON_BUTTON}
-            >
-              <Plus className="size-3.5" aria-hidden />
-            </button>
-          </>
-        )}
-        {hasCommander && board === "main" && canBeCommander(card) && (
-          <button
-            type="button"
-            onClick={() => moveCard(card, "main", "commander")}
-            aria-label={`Hacer comandante a ${card.name}`}
-            title="Hacer comandante"
-            className={ICON_BUTTON}
-          >
-            <Crown className="size-3.5" aria-hidden />
-          </button>
-        )}
-        <CardTagsDialog
-          entry={entry}
-          deckTags={deckTags}
-          trigger={(open) => (
-            <button
-              type="button"
-              onClick={open}
-              aria-label={`Etiquetas de ${card.name}${tags.length > 0 ? `: ${tags.join(", ")}` : ""}`}
-              title={tags.length > 0 ? `Etiquetas: ${tags.join(", ")}` : "Etiquetar"}
-              className={cn(ICON_BUTTON, tags.length > 0 && "text-accent")}
-            >
-              <Tag className="size-3.5" aria-hidden />
-            </button>
-          )}
-        />
-        <select
-          aria-label={`Mover ${card.name} a otra zona`}
-          title="Mover a…"
-          value=""
-          onChange={(event) => {
-            const target = event.target.value as DeckBoard | "remove";
-            if (target === "remove") addCopies(card, board, -quantity);
-            else moveCard(card, board, target);
-          }}
-          className="h-6 w-6 cursor-pointer appearance-none rounded bg-transparent text-center text-xs text-muted transition-colors duration-150 hover:bg-surface-raised hover:text-foreground"
-        >
-          <option value="" disabled>
-            ⋯
-          </option>
-          {destinations.map((target) => (
-            <option key={target} value={target}>
-              Mover a {DECK_BOARD_LABELS[target]}
-            </option>
-          ))}
-          <option value="remove">Quitar del mazo</option>
-        </select>
-      </div>
+      <DeckEntryActions
+        entry={entry}
+        hasCommander={hasCommander}
+        deckTags={deckTags}
+        className={reveal}
+      />
 
       {card.manaCost && <ManaCost cost={card.manaCost} className="shrink-0 [&_img]:size-4" />}
     </motion.li>

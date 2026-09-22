@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -288,7 +288,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Agrupar por tipo, con animaciones al añadir y quitar
 - [x] Agrupar por coste, color o etiquetas propias de cada carta ("rampa", "robo"…), también en la vista
       pública; las etiquetas se guardan con el mazo y se deshacen como cualquier cambio
-- [ ] Vistas de imágenes y pilas en el editor
+- [x] Vistas de imágenes y de pilas en el editor, con las mismas acciones en cada carta que en la lista
 - [x] Guardado automático optimista (agrupa cambios, reintenta si falla, avisa antes de cerrar con cambios sin guardar) y deshacer/rehacer
 - [x] Estadísticas en vivo: curva de maná, símbolos de color, tipos, valor medio y precio
 - [x] Fuentes de maná frente a lo que piden los costes: qué parte de los símbolos pide cada color y qué

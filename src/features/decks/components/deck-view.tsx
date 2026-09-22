@@ -1,12 +1,13 @@
 "use client";
 
-import { Images, Layers, List } from "lucide-react";
+import { Layers } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CardPreview } from "@/features/cards/components/card-preview";
 import { cn } from "@/lib/utils/cn";
 import { DECK_BOARD_LABELS } from "../constants/deck-formats";
 import { useGroupMode } from "../hooks/use-group-mode";
+import { useViewMode } from "../hooks/use-view-mode";
 import { countCopies, groupByBoard, groupLines } from "../lib/deck-lines";
 import { computeDeckStats } from "../lib/deck-stats";
 import { validateDeck } from "../lib/deck-validation";
@@ -16,6 +17,7 @@ import { DeckStatsPanel } from "./deck-stats-panel";
 import { DeckViewGallery } from "./deck-view-gallery";
 import { DeckViewList } from "./deck-view-list";
 import { GroupModePicker } from "./group-mode-picker";
+import { ViewModePicker } from "./view-mode-picker";
 
 interface DeckViewProps {
   lines: DeckCardLine[];
@@ -24,12 +26,8 @@ interface DeckViewProps {
   unknownCards?: number;
 }
 
-type ViewMode = "text" | "gallery";
-
-const VIEW_MODES: Array<{ id: ViewMode; label: string; icon: typeof List }> = [
-  { id: "text", label: "Texto", icon: List },
-  { id: "gallery", label: "Imágenes", icon: Images },
-];
+/** En modo lectura no hay pilas: sin nada que arrastrar, no aportan sobre las imágenes. */
+const READING_VIEWS = ["text", "gallery"] as const;
 
 /**
  * Pantalla 6 · Un mazo en modo lectura: las cartas por zonas, el análisis y la legalidad.
@@ -38,7 +36,7 @@ const VIEW_MODES: Array<{ id: ViewMode; label: string; icon: typeof List }> = [
  * pero sin nada que se pueda tocar: aquí puede entrar cualquiera con el enlace.
  */
 export function DeckView({ lines, format, unknownCards = 0 }: DeckViewProps) {
-  const [view, setView] = useState<ViewMode>("text");
+  const [view, setView] = useViewMode("deckforge:vista-mazo", READING_VIEWS);
   const [previewCard, setPreviewCard] = useState<CatalogCard>();
   const [groupMode, setGroupMode] = useGroupMode();
 
@@ -82,30 +80,7 @@ export function DeckView({ lines, format, unknownCards = 0 }: DeckViewProps) {
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <GroupModePicker value={groupMode} onChange={setGroupMode} />
-            <div
-              role="radiogroup"
-              aria-label="Cómo ver las cartas"
-              className="flex rounded-md border border-border p-0.5 text-xs"
-            >
-              {VIEW_MODES.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="radio"
-                  aria-checked={view === id}
-                  onClick={() => setView(id)}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded px-2 py-1 transition-colors duration-150",
-                    view === id
-                      ? "bg-surface-raised text-foreground"
-                      : "text-muted hover:text-foreground",
-                  )}
-                >
-                  <Icon className="size-3.5" aria-hidden />
-                  {label}
-                </button>
-              ))}
-            </div>
+            <ViewModePicker value={view} onChange={setView} modes={READING_VIEWS} />
           </div>
         </div>
 
