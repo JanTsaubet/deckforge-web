@@ -1,6 +1,7 @@
 import type { ManaColor } from "@/features/cards/types/card";
 import type { DeckBoard, DeckCardLine } from "../types/deck";
 import { cardCategory, CARD_CATEGORIES, type CardCategory } from "./card-category";
+import { producedColors } from "./mana-sources";
 
 /** Barras de la curva de maná: 0, 1, 2… hasta "7 o más". */
 export const CURVE_BUCKETS = 8;
@@ -16,6 +17,10 @@ export interface DeckStats {
   averageManaValue: number;
   /** Símbolos de maná de color en los costes (cuánto "pide" cada color). */
   colorPips: Record<ManaColor, number>;
+  /** Copias que producen maná de cada color (cuánto "da" el mazo). */
+  colorSources: Record<ManaColor, number>;
+  /** Copias que producen maná de algún color: tierras, piedras y criaturas de maná. */
+  manaSources: number;
   byCategory: Record<CardCategory, number>;
   /** Precio del comandante y el mazo principal, en euros; sin las cartas sin precio. */
   priceEur: number;
@@ -33,6 +38,8 @@ export function computeDeckStats(entries: DeckCardLine[]): DeckStats {
   const byBoard: Record<DeckBoard, number> = { commander: 0, main: 0, sideboard: 0, maybeboard: 0 };
   const curve = Array.from({ length: CURVE_BUCKETS }, () => 0);
   const colorPips: Record<ManaColor, number> = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+  const colorSources: Record<ManaColor, number> = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+  let manaSources = 0;
   const byCategory = Object.fromEntries(CARD_CATEGORIES.map((category) => [category, 0])) as Record<
     CardCategory,
     number
@@ -60,6 +67,12 @@ export function computeDeckStats(entries: DeckCardLine[]): DeckStats {
       colorPips[color] += countPips(card.manaCost, color) * quantity;
     }
 
+    const produced = producedColors(card);
+    if (produced.length > 0) {
+      manaSources += quantity;
+      for (const color of produced) colorSources[color] += quantity;
+    }
+
     if (card.priceEur === undefined) cardsWithoutPrice += 1;
     else priceEur += card.priceEur * quantity;
   }
@@ -70,6 +83,8 @@ export function computeDeckStats(entries: DeckCardLine[]): DeckStats {
     curve,
     averageManaValue: spellCount === 0 ? 0 : manaValueSum / spellCount,
     colorPips,
+    colorSources,
+    manaSources,
     byCategory,
     priceEur: Math.round(priceEur * 100) / 100,
     cardsWithoutPrice,

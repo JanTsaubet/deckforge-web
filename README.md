@@ -291,7 +291,8 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [ ] Vistas de imágenes y pilas en el editor
 - [x] Guardado automático optimista (agrupa cambios, reintenta si falla, avisa antes de cerrar con cambios sin guardar) y deshacer/rehacer
 - [x] Estadísticas en vivo: curva de maná, símbolos de color, tipos, valor medio y precio
-- [ ] Fuentes de maná frente a lo que piden los costes
+- [x] Fuentes de maná frente a lo que piden los costes: qué parte de los símbolos pide cada color y qué
+      parte de las fuentes lo produce, avisando del color que se queda corto
 - [x] Validación de legalidad: tamaño, copias (con las excepciones de texto), identidad de color, prohibidas y Game Changers
 - [x] Selector de comandante: la corona fija la identidad de color y filtra el buscador
 - [ ] **Quick adds v1:** cartas casi obligatorias de esa identidad de color, agrupadas por función

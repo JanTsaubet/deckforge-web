@@ -1,11 +1,13 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
 import { motion } from "motion/react";
 import { ManaSymbol } from "@/features/cards/components/mana-symbol";
 import { MANA_COLOR_CLASSES, MANA_COLOR_LABELS } from "@/features/cards/constants/mana-colors";
-import type { ManaColor } from "@/features/cards/types/card";
+import { cn } from "@/lib/utils/cn";
 import { CARD_CATEGORIES, CARD_CATEGORY_LABELS } from "../lib/card-category";
 import { CURVE_BUCKETS, type DeckStats } from "../lib/deck-stats";
+import { balanceColors } from "../lib/mana-sources";
 
 interface DeckStatsPanelProps {
   stats: DeckStats;
@@ -36,7 +38,7 @@ export function DeckStatsPanel({ stats }: DeckStatsPanelProps) {
       </section>
 
       <ManaCurve curve={stats.curve} />
-      <ColorPips pips={stats.colorPips} />
+      <ManaBalance stats={stats} />
 
       <section aria-label="Tipos">
         <h3 className="mb-2 text-xs font-medium text-muted">Tipos</h3>
@@ -96,36 +98,73 @@ function ManaCurve({ curve }: { curve: number[] }) {
   );
 }
 
-const PIP_COLORS: ManaColor[] = ["W", "U", "B", "R", "G"];
+/**
+ * Lo que el mazo pide frente a lo que produce: por cada color, qué parte de los símbolos de
+ * sus costes es de ese color y qué parte de sus fuentes de maná lo produce. Cuando un color
+ * pide bastante más de lo que da el mazo, se dice.
+ */
+function ManaBalance({ stats }: { stats: DeckStats }) {
+  const balance = balanceColors(stats.colorPips, stats.colorSources);
+  if (balance.length === 0) return null;
 
-/** Cuántos símbolos de cada color piden los costes: orienta el reparto de tierras. */
-function ColorPips({ pips }: { pips: Record<ManaColor, number> }) {
-  const total = PIP_COLORS.reduce((sum, color) => sum + pips[color], 0);
-  if (total === 0) return null;
+  const short = balance.filter((color) => color.isShort);
 
   return (
-    <section aria-label="Símbolos de color">
-      <h3 className="mb-2 text-xs font-medium text-muted">Símbolos de color en los costes</h3>
-      <div className="flex h-2 overflow-hidden rounded-full bg-surface-raised">
-        {PIP_COLORS.filter((color) => pips[color] > 0).map((color) => (
-          <motion.div
-            key={color}
-            // Clases completas de un mapa: Tailwind no ve las que se construyen con plantillas.
-            className={MANA_COLOR_CLASSES[color]}
-            initial={false}
-            animate={{ width: `${(pips[color] / total) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        ))}
-      </div>
-      <ul className="mt-2 flex flex-wrap gap-3 text-xs">
-        {PIP_COLORS.filter((color) => pips[color] > 0).map((color) => (
-          <li key={color} className="flex items-center gap-1" title={MANA_COLOR_LABELS[color]}>
-            <ManaSymbol symbol={`{${color}}`} decorative className="size-3.5" />
-            <span className="tabular-nums">{Math.round((pips[color] / total) * 100)}%</span>
+    <section aria-label="Fuentes de maná">
+      <h3 className="mb-2 flex items-baseline justify-between gap-2 text-xs font-medium text-muted">
+        Fuentes de maná frente a los costes
+        <span className="font-normal tabular-nums">{stats.manaSources} fuentes</span>
+      </h3>
+
+      <ul className="flex flex-col gap-1.5">
+        {balance.map(({ color, pips, sources, pipShare, sourceShare, isShort }) => (
+          <li key={color} className="flex items-center gap-2 text-xs">
+            <span title={MANA_COLOR_LABELS[color]} className="shrink-0">
+              <ManaSymbol symbol={`{${color}}`} decorative className="size-3.5" />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <Share
+                label={`${pips} ${pips === 1 ? "símbolo" : "símbolos"}`}
+                share={pipShare}
+                className="bg-foreground/40"
+              />
+              <Share
+                label={`${sources} ${sources === 1 ? "fuente" : "fuentes"}`}
+                share={sourceShare}
+                className={isShort ? "bg-warning" : MANA_COLOR_CLASSES[color]}
+              />
+            </span>
           </li>
         ))}
       </ul>
+
+      {short.length > 0 && (
+        <p className="mt-2 flex gap-1.5 text-xs text-warning">
+          <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+          <span className="text-pretty">
+            {short.map((color) => MANA_COLOR_LABELS[color.color].toLowerCase()).join(" y ")}{" "}
+            {short.length === 1 ? "pide" : "piden"} más de lo que produce el mazo: mira si te faltan
+            fuentes de ese color.
+          </span>
+        </p>
+      )}
     </section>
+  );
+}
+
+/** Una barra con su cifra: la parte que le toca a un color, de 0 a 1. */
+function Share({ label, share, className }: { label: string; share: number; className: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-raised">
+        <motion.span
+          className={cn("block h-full rounded-full", className)}
+          initial={false}
+          animate={{ width: `${Math.round(share * 100)}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </span>
+      <span className="w-20 shrink-0 text-right text-muted tabular-nums">{label}</span>
+    </span>
   );
 }
