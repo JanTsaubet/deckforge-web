@@ -1,8 +1,19 @@
 "use client";
 
-import { ArrowLeft, Check, CloudOff, Command, Eye, Loader2, Redo2, Undo2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  CloudOff,
+  Command,
+  Eye,
+  History,
+  Loader2,
+  Redo2,
+  Undo2,
+} from "lucide-react";
 import Link from "next/link";
 import { buttonStyles } from "@/components/ui/button";
+import { useModalDialog } from "@/components/ui/use-modal-dialog";
 import { routes } from "@/config/routes";
 import { ColorIdentity } from "@/features/cards/components/color-identity";
 import type { ManaColor } from "@/features/cards/types/card";
@@ -11,6 +22,7 @@ import type { DeckFormat } from "@/features/decks/types/deck";
 import { cn } from "@/lib/utils/cn";
 import { useDeckEditor } from "../store/deck-editor-context";
 import { CommandPalette } from "./command-palette";
+import { HistoryDialog } from "./history-dialog";
 
 interface EditorHeaderProps {
   deckId: string;
@@ -30,6 +42,8 @@ export function EditorHeader({ deckId, name, format, identity, onFocusSearch }: 
   const canRedo = useDeckEditor((state) => state.future.length > 0);
   const undo = useDeckEditor((state) => state.undo);
   const redo = useDeckEditor((state) => state.redo);
+  // El historial se abre desde su botón y desde la paleta, así que su estado vive aquí.
+  const history = useModalDialog();
 
   return (
     <header className="flex flex-wrap items-center gap-3">
@@ -49,6 +63,7 @@ export function EditorHeader({ deckId, name, format, identity, onFocusSearch }: 
       <CommandPalette
         deckId={deckId}
         onFocusSearch={onFocusSearch}
+        onShowHistory={history.open}
         trigger={(open) => (
           <button
             type="button"
@@ -61,6 +76,17 @@ export function EditorHeader({ deckId, name, format, identity, onFocusSearch }: 
           </button>
         )}
       />
+
+      <button
+        type="button"
+        onClick={history.open}
+        aria-label="Ver el historial de cambios"
+        title="Historial de cambios"
+        className={ICON_BUTTON}
+      >
+        <History className="size-4" aria-hidden />
+      </button>
+      <HistoryDialog deckId={deckId} dialog={history} />
 
       <div className="flex items-center gap-1">
         <button

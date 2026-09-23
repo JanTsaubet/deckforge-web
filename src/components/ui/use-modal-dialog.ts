@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+/** Lo que devuelve `useModalDialog`: sirve para abrir un diálogo desde más de un sitio. */
+export type ModalDialog = ReturnType<typeof useModalDialog>;
+
 /**
  * Estado de un diálogo modal sobre <dialog>.
  *

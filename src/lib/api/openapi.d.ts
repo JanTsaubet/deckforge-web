@@ -116,6 +116,22 @@ export interface paths {
         patch: operations["DecksController_update"];
         trace?: never;
     };
+    "/v1/decks/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DecksController_listVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/decks/{id}/entries": {
         parameters: {
             query?: never;
@@ -321,6 +337,28 @@ export interface components {
             entries: components["schemas"]["DeckEntryDto"][];
             /** @description Si quien lo pide puede editarlo (es su dueño) */
             viewerCanEdit: boolean;
+        };
+        DeckVersionChangeDto: {
+            /** @description Id de Scryfall de la impresión */
+            cardId: string;
+            /** @enum {string} */
+            board: "commander" | "main" | "sideboard" | "maybeboard";
+            /** @description Copias que había antes; 0 si la carta no estaba */
+            from: number;
+            /** @description Copias que hay ahora; 0 si se quitó */
+            to: number;
+            /** @description Datos de la carta; null si el catálogo local ya no la conoce */
+            card: components["schemas"]["CardDto"] | null;
+        };
+        DeckVersionDto: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: date-time
+             * @description Cuándo empezaron los cambios
+             */
+            createdAt: string;
+            changes: components["schemas"]["DeckVersionChangeDto"][];
         };
         UpdateDeckDto: {
             /** @example Atraxa, superamigos */
@@ -709,6 +747,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeckDto"];
+                };
+            };
+            /** @description No existe o no es tuyo */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DecksController_listVersions: {
+        parameters: {
+            query?: {
+                /** @description Versiones que se devuelven, de la más reciente hacia atrás */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versiones, la más reciente primero */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeckVersionDto"][];
                 };
             };
             /** @description No existe o no es tuyo */

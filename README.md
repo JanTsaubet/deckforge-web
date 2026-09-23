@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas y validación) y su vista pública de solo lectura; los quick adds ya montan la base del mazo. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 3 completada: el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas, validación, quick adds e historial de versiones) y su vista pública de solo lectura. En curso: Fase 4, el pulido de la experiencia, que empieza por los huecos que salieron al repasar la Fase 3. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -274,7 +274,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 - [x] Importación de listas en texto (MTG Arena, MTGO, Moxfield…) con vista previa: resuelve las cartas con `/cards/collection`, reintenta por nombre si la edición no existe y señala las líneas que fallan
 - [x] Recorrido completo verificado contra Postgres real: registro, crear y borrar mazos, cerrar sesión
 
-### Fase 3 · Editor de mazos 🚧
+### Fase 3 · Editor de mazos ✅
 
 - [x] API del editor: el mazo con los datos de cada carta, `PATCH /v1/decks/:id/entries` (cambios idempotentes y atómicos) y buscador sobre el catálogo local
 - [x] Layout de tres columnas (añadir · mazo · análisis); pestañas en móvil
@@ -300,10 +300,33 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
       mazo ya tiene y cada carta sale en una sola función
 - [x] Vista pública del mazo (lectura): mismas cartas y análisis que el editor, en texto o en imágenes,
       abierta a quien tenga el enlace y con metadatos para compartirla
-- [ ] Historial de versiones con _diffs_
+- [x] Historial de versiones con _diffs_: cada tanda de cambios guarda qué cartas entraron y
+      salieron (de cuántas copias a cuántas), los cambios seguidos se agrupan en una sola
+      versión y lo que vuelve a como estaba no deja rastro; solo lo ve el dueño del mazo
 
 ### Fase 4 · Pulido de la experiencia
 
+Lo primero son los huecos y los riesgos que salieron al repasar lo construido en la Fase 3,
+en orden de lo que más molesta:
+
+- [ ] **Editar los datos del mazo**: nombre, descripción, formato y visibilidad no se pueden
+      cambiar desde ninguna pantalla, así que un mazo nace privado y no hay forma de hacerlo
+      público ni de renombrarlo. Deja sin salida a la vista pública que ya existe
+- [ ] **Arrastrar cartas en móvil y tableta**: las filas no llevan `touch-action: none`, así
+      que en una pantalla táctil el gesto desplaza la página en vez de mover la carta
+- [ ] **Cambios sin guardar al navegar dentro de la web**: el aviso del navegador solo salta
+      al cerrar la pestaña; al ir a otra pantalla (el botón «Ver», la paleta, atrás) lo que
+      estuviera pendiente se pierde sin avisar
+- [ ] **Peso de las vistas de imágenes y pilas**: cada carta carga la imagen grande (488 px)
+      para enseñarla a 144 px; con cien cartas son unos cuantos megas de más
+- [ ] **Volver a una versión del historial**: el historial ya guarda de dónde venía cada
+      carta, así que restaurar es aplicar esos cambios al revés
+- [ ] **Elegir la edición y el arte de cada carta**: ahora se queda la impresión que eligió el
+      buscador
+- [ ] Afinar las recomendaciones: una carta que crea fichas de Tesoro cuenta como rampa por el
+      texto recordatorio de la ficha, y algún contrahechizo que da tesoros al rival se cuela
+- [ ] `notFound()` responde 200 con `noindex` en esta versión de Next (afecta a los mazos
+      privados y a las cartas que no existen); revisar al actualizar
 - [ ] Transiciones entre rutas con la View Transitions API (React `<ViewTransition>`)
 - [ ] Tema claro/oscuro e internacionalización (es/en)
 - [ ] Accesibilidad WCAG 2.2 AA y navegación completa por teclado

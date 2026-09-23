@@ -1,7 +1,7 @@
 "use client";
 
 import { Command } from "cmdk";
-import { Eye, Layers, Loader2, Redo2, Search, Undo2, type LucideIcon } from "lucide-react";
+import { Eye, History, Layers, Loader2, Redo2, Search, Undo2, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
@@ -19,6 +19,8 @@ interface CommandPaletteProps {
   deckId: string;
   /** Llevar el foco al buscador de la columna izquierda. */
   onFocusSearch: () => void;
+  /** Abrir el historial de cambios del mazo. */
+  onShowHistory: () => void;
   /** Botón que la abre, además del atajo: si no, solo la encontraría quien ya la conoce. */
   trigger?: (open: () => void) => ReactNode;
 }
@@ -49,7 +51,12 @@ const ITEM_CLASSES =
  * comandante: la paleta es el camino rápido para quien ya sabe qué carta quiere, también si
  * va al banquillo. Lo que se añada fuera de la identidad lo avisará la validación.
  */
-export function CommandPalette({ deckId, onFocusSearch, trigger }: CommandPaletteProps) {
+export function CommandPalette({
+  deckId,
+  onFocusSearch,
+  onShowHistory,
+  trigger,
+}: CommandPaletteProps) {
   const dialog = useModalDialog();
   const router = useRouter();
   const [text, setText] = useState("");
@@ -106,6 +113,12 @@ export function CommandPalette({ deckId, onFocusSearch, trigger }: CommandPalett
       shortcut: "/",
       icon: Search,
       run: onFocusSearch,
+    },
+    {
+      id: "history",
+      label: "Ver el historial de cambios",
+      icon: History,
+      run: onShowHistory,
     },
     {
       id: "view",

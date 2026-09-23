@@ -36,15 +36,16 @@ function Probe({ onReady }: { onReady: (api: DeckEditorStoreApi) => void }) {
 }
 
 function setup(onFocusSearch = vi.fn()) {
+  const onShowHistory = vi.fn();
   const user = userEvent.setup();
   const view = render(
     <DeckEditorProvider initialEntries={[]}>
       <Probe onReady={(api) => (store = api)} />
-      <CommandPalette deckId="mazo-1" onFocusSearch={onFocusSearch} />
+      <CommandPalette deckId="mazo-1" onFocusSearch={onFocusSearch} onShowHistory={onShowHistory} />
     </DeckEditorProvider>,
   );
   const dialog = () => view.container.querySelector("dialog");
-  return { user, dialog, onFocusSearch };
+  return { user, dialog, onFocusSearch, onShowHistory };
 }
 
 const openPalette = (user: ReturnType<typeof userEvent.setup>) =>
@@ -113,6 +114,15 @@ describe("CommandPalette", () => {
     await user.click(screen.getByText("Buscar cartas para añadir"));
 
     expect(onFocusSearch).toHaveBeenCalled();
+  });
+
+  it("abre el historial de cambios", async () => {
+    const { user, onShowHistory } = setup();
+    await openPalette(user);
+
+    await user.click(screen.getByText("Ver el historial de cambios"));
+
+    expect(onShowHistory).toHaveBeenCalled();
   });
 
   it("navega a la vista pública del mazo", async () => {
