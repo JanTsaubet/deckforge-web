@@ -148,6 +148,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cards/staples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["CardsController_staples"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -343,6 +359,12 @@ export interface components {
         };
         UpdateEntriesDto: {
             changes: components["schemas"]["EntryChangeDto"][];
+        };
+        StapleGroupDto: {
+            /** @enum {string} */
+            role: "ramp" | "draw" | "removal" | "land";
+            /** @description Las más jugadas primero */
+            cards: components["schemas"]["CardDto"][];
         };
     };
     responses: never;
@@ -759,6 +781,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CardDto"][];
+                };
+            };
+        };
+    };
+    CardsController_staples: {
+        parameters: {
+            query?: {
+                /** @description Identidad de color del comandante, p. ej. `RG`. `C` = solo incoloras. Sin ella, no se filtra. */
+                identity?: string;
+                /** @description Cartas por función. Se piden de más para poder descartar las que ya están. */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Un grupo por función, en el orden en que se monta un mazo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StapleGroupDto"][];
                 };
             };
         };

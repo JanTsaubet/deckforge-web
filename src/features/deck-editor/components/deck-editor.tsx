@@ -23,6 +23,7 @@ import { DeckAnalysis } from "./deck-analysis";
 import { DeckDndContext } from "./deck-dnd-context";
 import { DeckList } from "./deck-list";
 import { EditorHeader } from "./editor-header";
+import { QuickAdds } from "./quick-adds";
 
 interface DeckEditorProps {
   deckId: string;
@@ -189,12 +190,16 @@ function DeckEditorScreen({ deckId, name, format }: DeckEditorProps) {
               "lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:overflow-y-auto",
             )}
           >
-            <CardSearch
-              inputRef={searchRef}
-              hasCommander={hasCommander}
-              commanderIdentity={identity}
-              commanderSlotFree={commanders.length < 2}
-            />
+            <div className="flex flex-col gap-6">
+              <CardSearch
+                inputRef={searchRef}
+                hasCommander={hasCommander}
+                commanderIdentity={identity}
+                commanderSlotFree={commanders.length < 2}
+              />
+              {/* La base del mazo, para no buscar una a una las de siempre. */}
+              {hasCommander && <QuickAdds identity={identity} />}
+            </div>
           </aside>
 
           {resizer("left", "Ancho de la columna para añadir cartas")}

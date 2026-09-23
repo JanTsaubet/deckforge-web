@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas y validación) y su vista pública de solo lectura. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 2 completada (API, cuentas con email, Google y Discord, biblioteca con carpetas y etiquetas, importación de listas y catálogo local de cartas). En curso: Fase 3, el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas y validación) y su vista pública de solo lectura; los quick adds ya montan la base del mazo. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -295,8 +295,9 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
       parte de las fuentes lo produce, avisando del color que se queda corto
 - [x] Validación de legalidad: tamaño, copias (con las excepciones de texto), identidad de color, prohibidas y Game Changers
 - [x] Selector de comandante: la corona fija la identidad de color y filtra el buscador
-- [ ] **Quick adds v1:** cartas casi obligatorias de esa identidad de color, agrupadas por función
-      (rampa, robo, remoción, tierras), añadibles de una en una o por paquetes completos
+- [x] **Quick adds v1:** las cartas más jugadas de esa identidad de color agrupadas por función
+      (rampa, robo, remoción, tierras), añadibles de una en una o por paquetes; no propone lo que el
+      mazo ya tiene y cada carta sale en una sola función
 - [x] Vista pública del mazo (lectura): mismas cartas y análisis que el editor, en texto o en imágenes,
       abierta a quien tenga el enlace y con metadatos para compartirla
 - [ ] Historial de versiones con _diffs_
