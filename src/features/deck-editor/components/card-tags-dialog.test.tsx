@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useEffect } from "react";
 import { describe, expect, it } from "vitest";
@@ -72,6 +72,29 @@ describe("CardTagsDialog", () => {
 
     expect(tagsInStore()).toEqual(["rampa"]);
     expect(store.getState().saveStatus).toBe("saved");
+  });
+
+  it("se puede usar aunque las acciones de la fila estén apagadas", async () => {
+    // En la lista, los botones de una carta viven en un grupo con `pointer-events: none` hasta
+    // que el ratón pasa por la fila. Al abrirse el diálogo el cursor sale de ella, así que el
+    // diálogo no puede colgar de ese grupo: se monta aparte, al final del <body>.
+    const user = userEvent.setup();
+    const { container } = render(
+      <DeckEditorProvider initialEntries={[line]}>
+        <div style={{ pointerEvents: "none" }}>
+          <Row />
+        </div>
+      </DeckEditorProvider>,
+    );
+
+    // El grupo se vuelve pulsable al pasar el ratón; el clic del test no lo simula.
+    fireEvent.click(screen.getByRole("button", { name: "Etiquetar" }));
+
+    const dialog = screen.getByRole("dialog");
+    expect(container).not.toContainElement(dialog);
+    // Con el diálogo dentro del grupo, este clic era imposible: ni se podía cerrar.
+    await user.click(screen.getByRole("button", { name: "Cerrar" }));
+    expect(dialog).not.toBeVisible();
   });
 
   it("sugiere primero las etiquetas del mazo y después las funciones habituales", async () => {

@@ -1,4 +1,11 @@
-import { KeyboardCode, type Active, type KeyboardCoordinateGetter } from "@dnd-kit/core";
+import {
+  closestCorners,
+  KeyboardCode,
+  pointerWithin,
+  type Active,
+  type CollisionDetection,
+  type KeyboardCoordinateGetter,
+} from "@dnd-kit/core";
 import { canBeCommander } from "@/features/decks/lib/deck-validation";
 import type { CatalogCard, DeckBoard } from "@/features/decks/types/deck";
 
@@ -44,6 +51,20 @@ export function acceptsCard(
   if (board !== "commander") return true;
   return hasCommander && commanderCount < MAX_COMMANDERS && canBeCommander(dragged.card);
 }
+
+/**
+ * Dónde cae la carta que se arrastra.
+ *
+ * Con el ratón, donde está el puntero y en ningún otro sitio: las zonas son grandes y una
+ * fila pequeña puede tocar dos a la vez, así que por solapamiento acabaría en una que no se
+ * estaba señalando. Si el puntero no está sobre ninguna zona que la admita, no cae en ninguna
+ * y la carta se queda donde estaba, que es lo que espera quien la suelta sobre una zona
+ * apagada.
+ *
+ * Con el teclado no hay puntero, y entonces vale la zona más cercana a la carta.
+ */
+export const zoneCollisionDetection: CollisionDetection = (args) =>
+  args.pointerCoordinates ? pointerWithin(args) : closestCorners(args);
 
 const NEXT_ZONE = [KeyboardCode.Down, KeyboardCode.Right];
 const PREVIOUS_ZONE = [KeyboardCode.Up, KeyboardCode.Left];

@@ -1,17 +1,14 @@
 "use client";
 
 import {
-  closestCorners,
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  pointerWithin,
   PointerSensor,
   useSensor,
   useSensors,
   type Active,
   type Announcements,
-  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
   type ScreenReaderInstructions,
@@ -20,7 +17,12 @@ import { useReducedMotion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { DECK_BOARD_LABELS } from "@/features/decks/constants/deck-formats";
 import type { DeckBoard } from "@/features/decks/types/deck";
-import { dragCard, zoneCoordinateGetter, type DragCard } from "../lib/drag-and-drop";
+import {
+  dragCard,
+  zoneCollisionDetection,
+  zoneCoordinateGetter,
+  type DragCard,
+} from "../lib/drag-and-drop";
 import { useDeckEditor } from "../store/deck-editor-context";
 
 const instructions: ScreenReaderInstructions = {
@@ -49,17 +51,6 @@ function name(active: Active | null): string {
 function zone(board: string): string {
   return DECK_BOARD_LABELS[board as DeckBoard] ?? board;
 }
-
-/**
- * La carta cae donde está el puntero, no donde más se solapen los rectángulos: las zonas son
- * grandes y una fila pequeña puede tocar dos a la vez, así que por solapamiento acabaría en
- * una que no se estaba señalando. Con el teclado no hay puntero, y entonces vale la zona más
- * cercana a la carta.
- */
-const collisionDetection: CollisionDetection = (args) => {
-  const underPointer = pointerWithin(args);
-  return underPointer.length > 0 ? underPointer : closestCorners(args);
-};
 
 /**
  * Arrastrar cartas de una zona a otra. Envuelve al editor entero para que, mientras se
@@ -97,7 +88,7 @@ export function DeckDndContext({ children }: { children: ReactNode }) {
       // sin uno, el servidor y el navegador pintan números distintos (fallo de hidratación).
       id="editor-de-mazo"
       sensors={sensors}
-      collisionDetection={collisionDetection}
+      collisionDetection={zoneCollisionDetection}
       accessibility={{ announcements, screenReaderInstructions: instructions }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

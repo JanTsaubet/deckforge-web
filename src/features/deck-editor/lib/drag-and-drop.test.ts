@@ -1,7 +1,13 @@
-import type { Active, ClientRect } from "@dnd-kit/core";
+import type { Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
 import { describe, expect, it, vi } from "vitest";
 import { catalogCard } from "@/test/fixtures/catalog-card";
-import { acceptsCard, dragCard, zoneCoordinateGetter, type DragCard } from "./drag-and-drop";
+import {
+  acceptsCard,
+  dragCard,
+  zoneCollisionDetection,
+  zoneCoordinateGetter,
+  type DragCard,
+} from "./drag-and-drop";
 
 const krenko = catalogCard({
   id: "krenko",
@@ -115,5 +121,50 @@ describe("zoneCoordinateGetter", () => {
       zoneCoordinateGetter(event, keyboardContext(0) as unknown as ContextoDeTeclado),
     ).toBeUndefined();
     expect(event.preventDefault).not.toHaveBeenCalled();
+  });
+});
+
+type CollisionArgs = Parameters<typeof zoneCollisionDetection>[0];
+
+/**
+ * Lo que dnd-kit pasa a la detección de colisiones. Solo entran las zonas **habilitadas**:
+ * una zona que no admite la carta que se arrastra ni siquiera llega hasta aquí.
+ */
+function collisionArgs(
+  enabled: ReadonlyArray<readonly [string, ClientRect]>,
+  { pointerY, cardTop = 0 }: { pointerY?: number; cardTop?: number },
+): CollisionArgs {
+  return {
+    active: active(dragging()),
+    collisionRect: rect(cardTop),
+    droppableRects: new Map(enabled.map(([id, zone]) => [id, zone])),
+    droppableContainers: enabled.map(
+      ([id, zone]) => ({ id, rect: { current: zone } }) as DroppableContainer,
+    ),
+    pointerCoordinates: pointerY === undefined ? null : { x: 400, y: pointerY },
+  };
+}
+
+describe("zoneCollisionDetection", () => {
+  it("con el ratón, la carta cae en la zona que hay bajo el puntero", () => {
+    const collisions = zoneCollisionDetection(collisionArgs(ZONES, { pointerY: 150 }));
+
+    expect(collisions.map((collision) => collision.id)).toEqual(["main"]);
+  });
+
+  it("soltarla sobre una zona que no la admite no la lleva a ninguna otra", () => {
+    // El hueco de comandante no admite esta carta, así que no está entre las habilitadas, y el
+    // puntero está sobre él. Antes caía en la más cercana y la carta acababa en el banquillo.
+    const enabled = ZONES.filter(([id]) => id !== "commander");
+
+    const collisions = zoneCollisionDetection(collisionArgs(enabled, { pointerY: 50 }));
+
+    expect(collisions).toEqual([]);
+  });
+
+  it("con el teclado, que no tiene puntero, cae en la zona más cercana a la carta", () => {
+    const collisions = zoneCollisionDetection(collisionArgs(ZONES, { cardTop: 210 }));
+
+    expect(collisions[0]?.id).toBe("sideboard");
   });
 });

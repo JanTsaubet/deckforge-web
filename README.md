@@ -3,7 +3,7 @@
 > **Nombre provisional.** Constructor de mazos de _Magic: The Gathering_ inspirado en Moxfield y Archidekt,
 > centrado en la velocidad de edición, las animaciones fluidas y unas recomendaciones que expliquen el porqué.
 
-**Estado:** Fase 3 completada: el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas, validación, quick adds e historial de versiones) y su vista pública de solo lectura. En curso: Fase 4, el pulido de la experiencia, que empieza por los huecos que salieron al repasar la Fase 3. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
+**Estado:** Fase 3 completada: el editor de mazos (añadir, arrastrar entre zonas, paleta de comandos, agrupar y etiquetar, columnas a medida, vistas de texto, imágenes y pilas, guardado automático, estadísticas, validación, quick adds e historial de versiones) y su vista pública de solo lectura. En curso: Fase 4, el pulido de la experiencia, que empieza por los huecos que salieron al repasar la Fase 3. Después, Fase 5: la colección en cajas y el asistente que monta el mazo con tus propias cartas. Este README es el **guion de desarrollo**: cada fase se marca aquí según avanza.
 
 ## Índice
 
@@ -38,6 +38,10 @@ pero las decisiones de producto se toman pensando en Commander.
 - **Gran parte del mazo es casi obligatoria.** Rampa, robo de cartas, remoción y ciertas tierras se repiten en la inmensa
   mayoría de listas de esos colores. Montar esa base a mano, carta por carta, es el trabajo más repetitivo y aburrido de
   construir un mazo, y es justo lo que queremos eliminar.
+- **Casi nadie construye desde cero: se construye con lo que hay en casa.** Quien juega tiene cajas de cartas y, al montar un
+  mazo, el trabajo de verdad es acordarse de qué tiene y si encaja con el comandante. Si DeckForge sabe qué cartas tienes,
+  puede responder eso él: "de tu colección, estos son los Ángeles blancos que entran en este mazo". Esa es la otra mitad del
+  producto, y el motivo de la sección de colección y del asistente de construcción.
 
 ### Qué queremos mejorar respecto a Moxfield y Archidekt
 
@@ -49,7 +53,7 @@ pero las decisiones de producto se toman pensando en Commander.
 | Análisis              | Estadísticas en vivo: curva, fuentes de color frente a requisitos, probabilidades de robo (hipergeométrica).                                             |
 | Recomendación         | Sugerencias **explicadas**, combos detectados, alternativas por presupuesto y estimación del _bracket_ de Commander.                                     |
 | Rendimiento           | Listas virtualizadas, UI optimista y transiciones suaves que respetan la opción "reducir movimiento".                                                    |
-| Colección             | Marcar qué cartas tienes y cuáles te faltan para completar un mazo.                                                                                      |
+| **Colección**         | Inventario en cajas (qué tienes, en qué acabado y cuánto vale) y un asistente que monta el mazo **con tus propias cartas** según el comandante.          |
 | **Quick adds**        | Sección del editor con las cartas casi obligatorias del comandante elegido: montar la base del mazo en unos pocos clics en lugar de buscarlas una a una. |
 | **Commander primero** | Elegir comandante fija la identidad de color y filtra automáticamente búsquedas, sugerencias y validación de todo el mazo.                               |
 
@@ -73,7 +77,7 @@ flowchart LR
 | ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **deckforge-web** | ✅ Este repositorio   | Interfaz, SSR/SEO de mazos y cartas públicas, BFF ligero (Route Handlers que hacen de proxy cacheado a Scryfall).   |
 | **deckforge-api** | ✅ En marcha          | Autenticación, usuarios, mazos, colección, búsqueda de mazos, recomendaciones y worker de sincronización de cartas. |
-| deckforge-recs    | 💭 A evaluar (Fase 6) | Solo si el motor de recomendaciones necesita ML en Python; si no, vive como módulo de `deckforge-api`.              |
+| deckforge-recs    | 💭 A evaluar (Fase 7) | Solo si el motor de recomendaciones necesita ML en Python; si no, vive como módulo de `deckforge-api`.              |
 
 **¿Por qué separar web y API?** El worker que sincroniza los _bulk data_ de Scryfall (cientos de MB al día) y el cálculo
 de recomendaciones son procesos pesados con otro ciclo de despliegue y escalado que el frontend. El contrato entre ambos
@@ -150,10 +154,13 @@ deckforge-web/
 | `/login` · `/register` | Autenticación         | Email + contraseña y OAuth (Google, Discord)                 | 2    |
 | `/decks`               | **Biblioteca**        | Mazos del usuario con filtros, carpetas y etiquetas          | 2    |
 | `/decks/[deckId]/edit` | **Editor de mazos**   | Construcción y análisis en tiempo real                       | 3    |
-| `/search`              | **Búsqueda**          | Cartas (sintaxis Scryfall) y mazos de la comunidad           | 1/5  |
-| `/decks/[deckId]`      | Vista pública de mazo | Lectura, estadísticas, compartir y exportar                  | 3/5  |
+| `/decks/new`           | **Asistente**         | Monta el mazo a partir del comandante y de tu colección      | 5    |
+| `/collection`          | **Colección**         | Tus cajas, con el resumen y el valor de lo que tienes        | 5    |
+| `/collection/[boxId]`  | **Caja**              | Inventario de una caja: cantidades, acabados y precios       | 5    |
+| `/search`              | **Búsqueda**          | Cartas (sintaxis Scryfall) y mazos de la comunidad           | 1/6  |
+| `/decks/[deckId]`      | Vista pública de mazo | Lectura, estadísticas, compartir y exportar                  | 3/6  |
 | `/cards/[cardId]`      | Detalle de carta      | Oracle, impresiones, legalidades, precios, mazos que la usan | 1    |
-| `/u/[username]`        | Perfil                | Mazos públicos y actividad                                   | 5    |
+| `/u/[username]`        | Perfil                | Mazos públicos y actividad                                   | 6    |
 | `/settings`            | Ajustes               | Cuenta y preferencias                                        | 2/4  |
 
 Todas las rutas existen ya con su **layout definitivo** y paneles `PlaceholderPanel` que indican qué va en cada zona y en qué fase.
@@ -183,6 +190,18 @@ Todas las rutas existen ya con su **layout definitivo** y paneles `PlaceholderPa
 - Pestañas _Cartas_ y _Mazos_ con el estado en la URL, de modo que las búsquedas se pueden compartir.
 - Barra de consulta con ayuda de sintaxis y filtros visuales sincronizados con la consulta.
 - Resultados en rejilla virtualizada con scroll infinito y vista rápida al pasar el ratón.
+
+**4 · Colección y asistente (`/collection`, `/decks/new`)**
+
+- **Cajas** como las tiene cualquiera en casa: "cartas de Phyrexia", "míticas", "tierras". Cada caja lista sus cartas con
+  cantidad, acabado (normal o foil) y precio, y la sección enseña el total: cuántas cartas distintas, cuánto valen y cómo se
+  reparten por color, rareza y colección.
+- **Añadir cartas a granel**: pegar una lista o subir el CSV que exportan Moxfield, Archidekt, ManaBox o Deckbox, con la
+  misma vista previa que la importación de mazos.
+- **En el editor**, cada carta dice si la tienes y el buscador y los quick adds se pueden limitar a **solo lo que tengo**.
+- **Asistente al crear un mazo**: eliges comandante, DeckForge deduce de qué va (tribu, mecánicas, temas) y busca en tus
+  cajas lo que encaja: "tienes 14 Ángeles blancos", "esta es la rampa que ya tienes", y los añades por paquetes o de uno en
+  uno. Cada sugerencia dice **por qué** está ahí y en qué caja está la carta.
 
 ---
 
@@ -219,7 +238,7 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 
 | Fuente                  | Uso previsto                                              | Notas                                                                      |
 | ----------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
-| **Commander Spellbook** | Detección de combos en un mazo (Fase 6)                   | API pública; confirmar endpoints y límites en su documentación.            |
+| **Commander Spellbook** | Detección de combos en un mazo (Fase 7)                   | API pública; confirmar endpoints y límites en su documentación.            |
 | **MTGJSON**             | Histórico de precios y datos de sets en bloque (opcional) | Descargas masivas; útil para gráficas de evolución de precio.              |
 | EDHREC                  | Solo como referencia de producto                          | Sin API pública oficial: **no hacer scraping**. Recomendaciones propias.   |
 | Moxfield / Archidekt    | Importación de mazos                                      | Sin API pública documentada: importar por **texto** exportado (MTGA/MTGO). |
@@ -306,8 +325,40 @@ Base URL: `https://api.scryfall.com` · Adaptador: `src/features/cards/api/scryf
 
 ### Fase 4 · Pulido de la experiencia
 
-Lo primero son los huecos y los riesgos que salieron al repasar lo construido en la Fase 3,
-en orden de lo que más molesta:
+Lo primero es lo que salió al probar la Fase 3 a mano, en orden de lo que más molesta.
+
+#### Errores encontrados probando
+
+- [x] **Las etiquetas de una carta no se pueden usar**: el diálogo se pintaba dentro del grupo de
+      acciones de la fila, que lleva `pointer-events: none` hasta que el ratón pasa por encima; al
+      abrirse, el cursor salía de la fila y el diálogo heredaba ese `pointer-events: none`. Ahora
+      hay un componente `Modal` que monta el diálogo al final del `<body>`, con una prueba que lo
+      abre dentro de un grupo apagado y pulsa en él
+- [ ] Pasar los demás diálogos (confirmar, organizar, mazo nuevo, paleta, historial) al mismo
+      `Modal`: hoy no les afecta por dónde están, pero es la misma trampa esperando
+- [x] **Arrastrar a una zona que no admite la carta la mandaba al banquillo**: `pointerWithin` no
+      devuelve nada sobre una zona desactivada y entraba el respaldo `closestCorners`, que elegía
+      la más cercana. Ahora el respaldo solo se usa cuando no hay puntero, que es el caso del
+      teclado, para el que se puso
+- [ ] **Importar cartas con «//» en el nombre** (partidas, batallas, las _Room_ de Duskmourn): el
+      parseador ya unifica el separador («A /// B» → «A // B»), así que el fallo está al
+      resolverlas contra el catálogo; hay que reproducirlo con una lista real y arreglar la
+      búsqueda por nombre de las dos caras
+
+#### Reglas del formato en el editor
+
+- [ ] **Commander es singleton**: hoy se pueden añadir varias copias de una carta y solo se avisa
+      al validar. En Commander no debería dejar pasar de una copia, salvo en las tierras básicas y
+      en las cartas cuyo texto lo permite (_Relentless Rats_, _Shadowborn Apostle_…), que ya
+      reconoce la validación
+- [ ] **Nada de cartas solo digitales** (Arena, Alchemy, MTGO) cuando el mazo es de un formato de
+      papel: el catálogo ya guarda `digital`, pero el buscador solo lo usa para elegir impresión,
+      no para descartarlas; hay que filtrarlas en la búsqueda y en las recomendaciones
+- [ ] **Elegir comandante al crear el mazo**: si el formato es Commander, el diálogo de mazo nuevo
+      debería traer su propio buscador de comandante, en vez de crear el mazo y buscarlo después
+      (y enlaza con el asistente de la Fase 5, que empieza justo ahí)
+
+#### Huecos y riesgos del repaso de código
 
 - [ ] **Editar los datos del mazo**: nombre, descripción, formato y visibilidad no se pueden
       cambiar desde ninguna pantalla, así que un mazo nace privado y no hay forma de hacerlo
@@ -333,17 +384,93 @@ en orden de lo que más molesta:
 - [ ] PWA con consulta de mazos sin conexión
 - [ ] Presupuesto de rendimiento: Lighthouse ≥ 90 y Core Web Vitals en verde
 
-### Fase 5 · Comunidad
+### Fase 5 · Colección y asistente de construcción
+
+La otra mitad de la idea: que DeckForge sepa **qué cartas tienes** y construya contigo a partir
+de ellas. Un mazo se arma casi siempre con lo que hay en casa, y hoy eso se hace a mano,
+abriendo cajas y mirando carta por carta si encaja con el comandante.
+
+**Cómo encaja con los mazos.** La colección vive en su propia sección (`/collection`) y la
+biblioteca de mazos se queda donde está, con las dos en la misma navegación: lo que se hace en
+cada una no se parece (cantidades, acabados, valor e importar, frente a construir, validar y
+compartir), pero se consultan juntas. Los mazos **no** se convierten en cajas: un mazo ya es
+una lista de cartas, así que "cuántas copias me quedan libres" se calcula —lo que tengo menos
+lo que hay en los mazos marcados como _montados_— en vez de guardar dos veces la misma
+información y obligar a mover cartas de una caja a un mazo. Solo los mazos montados de verdad
+reservan copias; si no, diez mazos a medio pensar se comerían la colección entera. (Si al final
+prefieres una sola pantalla con pestañas «Mazos» y «Cajas», cambia la navegación y nada más: el
+modelo es el mismo.)
+
+#### Cajas: el inventario
+
+- [ ] Esquema y migración: `collections` (nombre único por usuario, sin distinguir mayúsculas,
+      como las carpetas) y `collection_cards` con **impresión + acabado** (normal, foil, grabada)
+      y cantidad en la clave: una foil y una normal son copias distintas y con precios distintos
+- [ ] `decks.built`: marca de "mazo montado físicamente", la que hace que un mazo reserve copias
+- [ ] CRUD de cajas: `GET/POST /v1/collections`, `PATCH` y `DELETE` (borrar una caja no borra
+      cartas de otras; avisa de cuántas copias se pierden)
+- [ ] Cartas de una caja: `PATCH /v1/collections/:id/cards` con el mismo patrón idempotente que
+      las cartas de un mazo (la petición fija la cantidad final, así un reintento no duplica), y
+      lectura paginada con filtros (texto, color, rareza, colección, acabado)
+- [ ] Mover o copiar cartas entre cajas en una sola operación atómica
+- [ ] Vista agregada por **carta** y no por impresión (`coalesce(oracle_id, id)`): tener otra
+      edición es tener la carta, igual que ya hacen los quick adds
+- [ ] `GET /v1/collection/summary`: cartas distintas, copias, valor total y reparto por color,
+      rareza y colección
+- [ ] `GET /v1/collection/availability`: cuántas copias tengo, cuántas están en mazos montados y
+      cuántas quedan libres
+- [ ] Importar a una caja: reutilizar el parseador de listas de texto y añadir el CSV que
+      exportan Moxfield, Archidekt, ManaBox y Deckbox (cantidad, edición, número y acabado)
+- [ ] Web: `/collection` con sus cajas y el resumen, y `/collection/[boxId]` con el inventario
+      editable en línea (+/−) y guardado optimista, como el editor de mazos
+- [ ] Web: crear, renombrar y borrar cajas; mover cartas entre cajas; importar con vista previa
+- [ ] Web: resumen visual de la colección (valor, reparto por color y rareza, las más caras)
+
+#### Conexión con el editor de mazos
+
+- [ ] Distintivo "la tienes / te falta" en cada carta del editor, del buscador y de los quick
+      adds, resuelto de una vez para todo el mazo (una consulta, no una por carta)
+- [ ] Filtro **solo lo que tengo** en el buscador y en los quick adds
+- [ ] Panel "lo que te falta" en el análisis del mazo: cartas que no tienes, con su precio y el
+      total, exportable como lista de la compra
+- [ ] Aviso al marcar un mazo como montado si alguna carta está ya comprometida en otro mazo
+
+#### El asistente (lo que de verdad cambia el proceso)
+
+- [ ] **Motor de temas del comandante**, módulo puro y probado aparte: de su texto y su tipo saca
+      la tribu (subtipos de criatura que nombra, "elige un tipo de criatura"), las mecánicas
+      (fichas, contadores +1/+1, sacrificar, cementerio, artefactos, encantamientos, equipo,
+      ganar vidas, "cuando muera"…) y las palabras clave
+- [ ] Guardar `keywords` de Scryfall en el catálogo (hoy no se guardan) y volver a sincronizar:
+      es lo que permite buscar por mecánica sin adivinar con expresiones regulares
+- [ ] `GET /v1/cards/:id/themes`: los temas detectados de un comandante, con cuánta confianza
+- [ ] `GET /v1/decks/wizard?commanderId=…`: por cada tema, las cartas **de tu colección** que
+      encajan (identidad de color, legales en Commander, las más jugadas primero) más la base por
+      funciones (rampa, robo, remoción, tierras) que ya tienes; con un modo "todo el catálogo"
+      para comparar lo que tienes con lo que existe
+- [ ] Web `/decks/new`: asistente por pasos —comandante → temas detectados (se pueden quitar y
+      añadir) → tus cartas por tema → la base que ya tienes → resumen—, que crea el mazo con todo
+      lo elegido en una sola operación
+- [ ] Cada sugerencia explica **por qué** está ahí ("es un Ángel blanco", "es rampa") y **dónde**
+      está la carta (en qué caja), que es lo que convierte la lista en algo accionable
+- [ ] Abrir el asistente también desde un mazo ya empezado, para repasar temas con la colección
+      en la mano
+- [ ] Resumen final: cuántas cartas tiene el mazo, cuántas faltan para 100 y qué hueco queda por
+      función
+
+### Fase 6 · Comunidad
 
 - [ ] Búsqueda de mazos públicos (Meilisearch), perfiles, "me gusta", comentarios y seguidores
 - [ ] Compartir: enlace, imagen Open Graph generada, _embed_ y exportación (MTGA, MTGO, CSV)
 - [ ] Comparador de mazos lado a lado
 - [ ] _Playtester_: robar manos, mulligan y probabilidades
 
-### Fase 6 · Recomendaciones
+### Fase 7 · Recomendaciones
 
 - [ ] Detección de combos (Commander Spellbook)
-- [ ] Sugerencias por co-ocurrencia en mazos públicos (mismo comandante o arquetipo)
+- [ ] Sugerencias por co-ocurrencia en mazos públicos (mismo comandante o arquetipo), que es lo
+      que hace de verdad "estilo EDHREC" al asistente de la Fase 5: los temas los detecta ya,
+      pero el orden de lo que más se juega con ese comandante sale de estos datos
 - [ ] Sinergias por etiquetas de función (_ramp_, _removal_, _draw_…)
 - [ ] **Quick adds v2:** detección de carencias del mazo (poca rampa, poco robo, curva alta,
       fuentes de color insuficientes) y sugerencias concretas para corregirlas

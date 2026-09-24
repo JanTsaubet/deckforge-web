@@ -3,7 +3,7 @@
 import { Tag, X } from "lucide-react";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { MODAL_CLASSES } from "@/components/ui/modal-styles";
+import { Modal } from "@/components/ui/modal";
 import { TagInput } from "@/components/ui/tag-input";
 import { useModalDialog } from "@/components/ui/use-modal-dialog";
 import { SUGGESTED_CARD_TAGS } from "@/features/decks/constants/card-tags";
@@ -49,7 +49,7 @@ export function CardTagsDialog({ entry, deckTags, trigger }: CardTagsDialogProps
   return (
     <>
       {trigger(open)}
-      <dialog {...dialog.dialogProps} aria-labelledby={titleId} className={MODAL_CLASSES}>
+      <Modal dialog={dialog} aria-labelledby={titleId}>
         <form onSubmit={save} className="flex flex-col gap-4">
           <header className="flex items-center justify-between gap-4">
             <h2 id={titleId} className="flex min-w-0 items-center gap-2 text-lg font-semibold">
@@ -86,7 +86,7 @@ export function CardTagsDialog({ entry, deckTags, trigger }: CardTagsDialogProps
             <Button type="submit">Guardar</Button>
           </div>
         </form>
-      </dialog>
+      </Modal>
     </>
   );
 }
